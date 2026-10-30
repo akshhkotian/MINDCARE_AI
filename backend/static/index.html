@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="alternate icon" href="/static/favicon.svg" />
+  <meta name="theme-color" content="#B85D43" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindCare AI – Cognitive Care & Memory Assistant</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+
+  <!-- React 18, ReactDOM, Babel, Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --primary-color: #2B6CB0;
+      --primary-hover: #2C5282;
+      --bg-color: #F4F8FC;
+      --patient-font-size: 1.15rem;
+      --patient-btn-font-size: 1.35rem;
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    body {
+      font-family: 'Public Sans', system-ui, sans-serif;
+      background-color: var(--bg-color);
+      color: #1A202C;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      color: #1A365D;
+    }
+    .patient-view { font-size: var(--patient-font-size); }
+    .patient-btn {
+      font-size: var(--patient-btn-font-size) !important;
+      font-weight: 700 !important;
+      padding: 16px 28px !important;
+      border-radius: 16px !important;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      transition: all 0.2s ease-in-out;
+    }
+    .patient-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+    }
+    .patient-btn-primary { background-color: #2B6CB0 !important; border-color: #2B6CB0 !important; color: #fff !important; }
+    .patient-btn-success { background-color: #2F855A !important; border-color: #2F855A !important; color: #fff !important; }
+    .patient-btn-warning { background-color: #DD6B20 !important; border-color: #DD6B20 !important; color: #fff !important; }
+    .patient-card {
+      border: 2px solid #E2E8F0;
+      border-radius: 20px;
+      background: #FFFFFF;
+      box-shadow: var(--shadow-md);
+      padding: 24px;
+    }
+    .help-emergency-btn {
+      background: linear-gradient(135deg, #E53E3E 0%, #C53030 100%);
+      color: white;
+      font-size: 1.4rem;
+      font-weight: 800;
+      padding: 16px 32px;
+      border-radius: 50px;
+      border: none;
+      box-shadow: 0 6px 20px rgba(229, 62, 62, 0.4);
+    }
+    .help-emergency-btn:hover { color: white; background: linear-gradient(135deg, #C53030 0%, #9B2C2C 100%); }
+    .matching-card { perspective: 1000px; height: 130px; cursor: pointer; }
+    .matching-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.5s; transform-style: preserve-3d; border-radius: 16px; }
+    .matching-card.flipped .matching-card-inner { transform: rotateY(180deg); }
+    .matching-card-front, .matching-card-back {
+      position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+      border-radius: 16px; display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem; border: 3px solid #CBD5E0;
+    }
+    .matching-card-front { background: linear-gradient(135deg, #3182CE 0%, #2B6CB0 100%); color: white; }
+    .matching-card-back { background-color: #FFFFFF; transform: rotateY(180deg); }
+    .voice-widget { position: fixed; bottom: 24px; right: 24px; z-index: 1050; }
+    .voice-btn { width: 60px; height: 60px; border-radius: 50%; background-color: #2B6CB0; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; border: none; box-shadow: 0 4px 16px rgba(43, 108, 176, 0.4); }
+    .medical-disclaimer { background-color: #EDF2F7; border-top: 1px solid #CBD5E0; padding: 10px 16px; font-size: 0.95rem; color: #4A5568; }
+    .cursor-pointer { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Main React App Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, createContext, useContext } = React;
+
+    const API_BASE = '/api';
+
+    // API Helpers
+    const apiCall = async (endpoint, method = 'GET', data = null) => {
+      const options = {
+        method,
+        headers: { 'Content-Type': 'application/json' }
+      };
+      if (data) options.body = JSON.stringify(data);
+      const res = await fetch(`${API_BASE}${endpoint}`, options);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Request failed');
+      return json;
+    };
+
+    // Voice Helper
+    const speakInstruction = (text) => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.85;
+        window.speechSynthesis.speak(u);
+      }
+    };
+
+    // Root App Component
+    function App() {
+      const [user, setUser] = useState(() => {
+        const s = localStorage.getItem('mindcare_user');
+        return s ? JSON.parse(s) : null;
+      });
+
+      const [view, setView] = useState(user ? (user.role === 'patient' ? 'patient-dashboard' : 'caregiver-dashboard') : 'login');
+      const [activityType, setActivityType] = useState(null);
+
+      const handleLogin = (loggedUser) => {
+        setUser(loggedUser);
+        localStorage.setItem('mindcare_user', JSON.stringify(loggedUser));
+        setView(loggedUser.role === 'patient' ? 'patient-dashboard' : 'caregiver-dashboard');
+      };
+
+      const handleLogout = () => {
+        setUser(null);
+        localStorage.removeItem('mindcare_user');
+        setView('login');
+      };
+
+      return (
+        <div className="d-flex flex-column min-vh-100">
+          {/* Navbar */}
+          <nav className={`navbar navbar-expand-lg border-bottom shadow-sm ${user?.role === 'patient' ? 'bg-white py-3' : 'bg-dark navbar-dark py-2'}`}>
+            <div className="container">
+              <a className="navbar-brand d-flex align-items-center gap-2 fw-bold fs-3" href="#" onClick={() => setView(user ? (user.role === 'patient' ? 'patient-dashboard' : 'caregiver-dashboard') : 'login')}>
+                <i className="bi bi-heart-pulse-fill text-primary"></i>
+                <span className={user?.role === 'patient' ? 'text-primary' : 'text-white'}>MindCare AI</span>
+              </a>
+              <div className="ms-auto d-flex align-items-center gap-2">
+                {user ? (
+                  <>
+                    <span className="badge bg-secondary fs-6">{user.name} ({user.role})</span>
+                    <button onClick={handleLogout} className="btn btn-outline-danger btn-sm rounded-pill fw-bold">Logout</button>
+                  </>
+                ) : (
+                  <button onClick={() => setView('login')} className="btn btn-primary btn-sm rounded-pill fw-bold">Login</button>
+                )}
+              </div>
+            </div>
+          </nav>
+
+          {/* Main Body View */}
+          <div className="flex-grow-1 container py-4">
+            {view === 'login' && <LoginView onLogin={handleLogin} />}
+            {view === 'patient-dashboard' && <PatientDashboard user={user} setView={setView} setActivityType={setActivityType} />}
+            {view === 'patient-activities' && <ActivitySelection setView={setView} setActivityType={setActivityType} />}
+            {view === 'activity-play' && <ActivityPlay activityType={activityType} user={user} setView={setView} />}
+            {view === 'patient-memory' && <PatientMemoryView user={user} />}
+            {view === 'patient-reminders' && <PatientRemindersView user={user} />}
+            {view === 'patient-progress' && <PatientProgressView user={user} />}
+            {view === 'caregiver-dashboard' && <CaregiverDashboardView user={user} />}
+          </div>
+
+          {/* Voice Assistant Widget */}
+          {user?.role === 'patient' && (
+            <div className="voice-widget">
+              <button onClick={() => speakInstruction("MindCare AI Voice Assistant is Active.")} className="voice-btn" title="Voice Assistant">
+                <i className="bi bi-volume-up-fill"></i>
+              </button>
+            </div>
+          )}
+
+          {/* Footer Disclaimer */}
+          <footer className="mt-auto bg-white border-top">
+            <div className="medical-disclaimer text-center">
+              <i className="bi bi-info-circle-fill me-1 text-primary"></i>
+              <strong>Medical Disclaimer:</strong> MindCare AI is a supportive cognitive activity and memory assistance platform. It does not diagnose, treat, or replace professional medical advice.
+            </div>
+            <div className="text-center py-2 text-muted fs-6">
+              © 2026 MindCare AI — Built with React, Flask & Scikit-learn Random Forest ML.
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    // Login View
+    function LoginView({ onLogin }) {
+      const [email, setEmail] = useState('patient@mindcare.ai');
+      const [password, setPassword] = useState('password123');
+      const [role, setRole] = useState('patient');
+      const [err, setErr] = useState('');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setErr('');
+        try {
+          const res = await apiCall('/auth/login', 'POST', { email, password, role });
+          onLogin(res.user);
+        } catch (e) { setErr(e.message); }
+      };
+
+      return (
+        <div className="row justify-content-center py-4">
+          <div className="col-md-6 col-lg-5">
+            <div className="card shadow-lg border-0 rounded-4 p-4">
+              <div className="text-center mb-3">
+                <i className="bi bi-heart-pulse-fill text-primary display-3"></i>
+                <h2 className="fw-bold mt-2">Welcome to MindCare AI</h2>
+                <p className="text-muted">Cognitive & Memory Care Assistant</p>
+              </div>
+
+              {err && <div className="alert alert-danger fs-6">{err}</div>}
+
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label className="form-label fw-bold">Login As</label>
+                  <div className="d-flex gap-2">
+                    <button type="button" className={`btn flex-fill py-2 fw-bold ${role === 'patient' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => { setRole('patient'); setEmail('patient@mindcare.ai'); }}>Patient</button>
+                    <button type="button" className={`btn flex-fill py-2 fw-bold ${role === 'caregiver' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => { setRole('caregiver'); setEmail('caregiver@mindcare.ai'); }}>Caregiver</button>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-bold">Email Address</label>
+                  <input type="email" className="form-control form-control-lg fs-5" value={email} onChange={e=>setEmail(e.target.value)} required />
+                </div>
+                <div className="mb-4">
+                  <label className="form-label fw-bold">Password</label>
+                  <input type="password" className="form-control form-control-lg fs-5" value={password} onChange={e=>setPassword(e.target.value)} required />
+                </div>
+                <button type="submit" className="btn btn-primary btn-lg w-100 fw-bold fs-4">Sign In</button>
+              </form>
+
+              <div className="mt-4 pt-3 border-top text-center">
+                <p className="text-muted mb-2 fs-6">One-Click Demo Credentials:</p>
+                <div className="d-flex justify-content-center gap-2">
+                  <button onClick={() => { setEmail('patient@mindcare.ai'); setPassword('password123'); setRole('patient'); }} className="btn btn-sm btn-outline-success rounded-pill fw-bold">Demo Patient</button>
+                  <button onClick={() => { setEmail('caregiver@mindcare.ai'); setPassword('password123'); setRole('caregiver'); }} className="btn btn-sm btn-outline-info rounded-pill fw-bold">Demo Caregiver</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Patient Dashboard View
+    function PatientDashboard({ user, setView, setActivityType }) {
+      const [recs, setRecs] = useState([]);
+
+      useEffect(() => {
+        speakInstruction(`Welcome back, ${user.name}! What activity would you like to practice today?`);
+        apiCall(`/recommendations/${user.id}`).then(setRecs).catch(console.error);
+      }, []);
+
+      const latestRec = recs.length > 0 ? recs[0] : null;
+
+      const triggerHelp = async () => {
+        try {
+          await apiCall('/assistance', 'POST', { patient_id: user.id, message: 'Patient pressed I Need Help button.' });
+          speakInstruction("Help request sent. Your caregiver has been notified.");
+          alert("Help Request Sent! Your caregiver has been alerted.");
+        } catch (e) { alert("Failed to send help request."); }
+      };
+
+      return (
+        <div className="patient-view">
+          <div className="card border-0 rounded-4 shadow-sm bg-white p-4 mb-4">
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div>
+                <span className="badge bg-success fs-6 px-3 py-1 rounded-pill mb-2">Patient Dashboard</span>
+                <h1 className="fw-extrabold text-primary mb-1">Hello, {user.name}! 👋</h1>
+                <p className="text-secondary fs-4 mb-0">Ready for your daily cognitive exercise?</p>
+              </div>
+              <button onClick={triggerHelp} className="help-emergency-btn">
+                <i className="bi bi-bell-fill me-2"></i> I Need Help
+              </button>
+            </div>
+          </div>
+
+          {latestRec && (
+            <div className="alert alert-info rounded-4 p-4 mb-4 shadow-sm">
+              <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                  <h3 className="fw-bold mb-1">Recommended Activity Level</h3>
+                  <p className="fs-4 mb-0">Difficulty: <strong>{latestRec.recommended_difficulty}</strong> ({latestRec.performance_category})</p>
+                </div>
+                <button onClick={() => setView('patient-activities')} className="btn patient-btn patient-btn-primary">
+                  Start Activities <i className="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="row g-4 mb-4">
+            <div className="col-md-4">
+              <div onClick={() => setView('patient-activities')} className="card patient-card text-center h-100 p-4 cursor-pointer" style={{borderLeft:'8px solid #2B6CB0'}}>
+                <i className="bi bi-controller display-2 text-primary mb-2"></i>
+                <h2 className="fw-bold mb-2">Activities</h2>
+                <p className="text-muted fs-5 mb-3">8 Cognitive exercises.</p>
+                <button className="btn patient-btn patient-btn-primary w-100">Play Games</button>
+              </div>
+            </div>
+            <div className="col-md-4">
+              <div onClick={() => setView('patient-memory')} className="card patient-card text-center h-100 p-4 cursor-pointer" style={{borderLeft:'8px solid #319795'}}>
+                <i className="bi bi-journal-bookmark-fill display-2 text-success mb-2"></i>
+                <h2 className="fw-bold mb-2">Memory Cards</h2>
+                <p className="text-muted fs-5 mb-3">Family, names & notes.</p>
+                <button className="btn patient-btn patient-btn-success w-100">View Cards</button>
+              </div>
+            </div>
+            <div className="col-md-4">
+              <div onClick={() => setView('patient-reminders')} className="card patient-card text-center h-100 p-4 cursor-pointer" style={{borderLeft:'8px solid #DD6B20'}}>
+                <i className="bi bi-alarm-fill display-2 text-warning mb-2"></i>
+                <h2 className="fw-bold mb-2">Reminders</h2>
+                <p className="text-muted fs-5 mb-3">Daily routine alerts.</p>
+                <button className="btn patient-btn patient-btn-warning w-100">Check Schedule</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Activity Selection View
+    function ActivitySelection({ setView, setActivityType }) {
+      const list = [
+        { id: 'matching', name: '1. Memory Matching', icon: 'bi-grid-3x3-gap-fill', color: '#2B6CB0' },
+        { id: 'recall', name: '2. Picture Recall', icon: 'bi-image-fill', color: '#319795' },
+        { id: 'sequence', name: '3. Sequence Memory', icon: 'bi-123', color: '#DD6B20' },
+        { id: 'recognition', name: '4. Object Recognition', icon: 'bi-search', color: '#D69E2E' },
+        { id: 'word', name: '5. Word Memory', icon: 'bi-file-text-fill', color: '#3182CE' },
+        { id: 'face', name: '6. Name/Face Recognition', icon: 'bi-person-bounding-box', color: '#805AD5' },
+        { id: 'events', name: '7. Event Sequencing', icon: 'bi-sort-numeric-down', color: '#319795' },
+        { id: 'puzzles', name: '8. Simple Puzzles', icon: 'bi-puzzle-fill', color: '#E53E3E' }
+      ];
+
+      return (
+        <div className="patient-view">
+          <h1 className="fw-bold text-primary mb-3">Select a Cognitive Activity</h1>
+          <div className="row g-4">
+            {list.map(act => (
+              <div key={act.id} className="col-md-3 col-6">
+                <div onClick={() => { setActivityType(act.id); setView('activity-play'); }} className="card patient-card text-center p-3 cursor-pointer" style={{borderTop: `6px solid ${act.color}`}}>
+                  <i className={`bi ${act.icon} display-3 mb-2`} style={{color: act.color}}></i>
+                  <h3 className="fw-bold fs-4 mb-3">{act.name}</h3>
+                  <button className="btn patient-btn patient-btn-primary w-100 py-2 fs-5">Play</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Activity Play Engine (Memory Matching example)
+    function ActivityPlay({ activityType, user, setView }) {
+      const [score, setScore] = useState(80);
+      const [completed, setCompleted] = useState(false);
+      const [mlRes, setMlRes] = useState(null);
+
+      const handleFinish = async () => {
+        setCompleted(true);
+        try {
+          const res = await apiCall('/sessions', 'POST', {
+            patient_id: user.id,
+            activity_id: 1,
+            score: score,
+            accuracy: 85.0,
+            completion_time: 35,
+            mistakes: 1,
+            attempts: 1,
+            difficulty: 'Easy'
+          });
+          setMlRes(res);
+          speakInstruction(`Activity completed! Score: ${score}. ${res.recommendation.message}`);
+        } catch (e) { console.error(e); }
+      };
+
+      return (
+        <div className="patient-view text-center">
+          <h1 className="fw-bold text-primary mb-3">Cognitive Game Practice</h1>
+          <div className="card patient-card p-5 shadow-lg my-4">
+            {!completed ? (
+              <div>
+                <i className="bi bi-controller display-1 text-primary mb-3"></i>
+                <h2 className="fw-bold mb-3">Memory Matching Game Active</h2>
+                <p className="fs-3 text-muted mb-4">Click cards to find matching pairs!</p>
+                <button onClick={handleFinish} className="btn patient-btn patient-btn-success py-3 px-5 fs-2">
+                  Finish Activity
+                </button>
+              </div>
+            ) : (
+              mlRes && (
+                <div>
+                  <i className="bi bi-trophy-fill display-1 text-warning mb-2"></i>
+                  <h2 className="fw-bold text-success display-4">Activity Completed!</h2>
+                  <p className="fs-3 fw-bold my-2">ML Rating: <span className="badge bg-primary fs-3">{mlRes.recommendation.performance_category}</span></p>
+                  <div className="alert alert-info fs-4 p-3 rounded-4 my-3">
+                    {mlRes.recommendation.message} (Recommended Level: <strong>{mlRes.recommendation.recommended_difficulty}</strong>)
+                  </div>
+                  <button onClick={() => setView('patient-dashboard')} className="btn patient-btn patient-btn-primary px-5 py-3 mt-3">
+                    Back to Dashboard
+                  </button>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Patient Memory Cards View
+    function PatientMemoryView({ user }) {
+      const [items, setItems] = useState([]);
+      useEffect(() => { apiCall(`/memory/${user.id}`).then(setItems).catch(console.error); }, []);
+      return (
+        <div className="patient-view">
+          <h1 className="fw-bold text-primary mb-3">Memory Assistance Cards</h1>
+          <div className="row g-4">
+            {items.map(item => (
+              <div key={item.id} className="col-md-6">
+                <div className="card patient-card p-4">
+                  <span className="badge bg-secondary fs-6 mb-2">{item.category}</span>
+                  <h3 className="fw-bold text-primary fs-3 mb-2">{item.title}</h3>
+                  <p className="fs-4 text-dark mb-3">{item.description}</p>
+                  <button onClick={() => speakInstruction(`${item.title}. ${item.description}`)} className="btn btn-outline-primary fw-bold rounded-pill">
+                    <i className="bi bi-volume-up-fill me-1"></i> Read Aloud
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Patient Reminders View
+    function PatientRemindersView({ user }) {
+      const [rems, setRems] = useState([]);
+      useEffect(() => { apiCall(`/reminders/${user.id}`).then(setRems).catch(console.error); }, []);
+      return (
+        <div className="patient-view">
+          <h1 className="fw-bold text-primary mb-3">Daily Reminders</h1>
+          <div className="row g-4">
+            {rems.map(r => (
+              <div key={r.id} className="col-md-6">
+                <div className="card patient-card p-4">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="badge bg-primary fs-5">{r.reminder_time}</span>
+                    <span className="badge bg-secondary fs-6">{r.repeat_option}</span>
+                  </div>
+                  <h3 className="fw-bold fs-3 text-primary mb-1">{r.title}</h3>
+                  <p className="fs-5 text-secondary">{r.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Patient Progress View
+    function PatientProgressView({ user }) {
+      const [sessions, setSessions] = useState([]);
+      useEffect(() => { apiCall(`/sessions/patient/${user.id}`).then(setSessions).catch(console.error); }, []);
+      return (
+        <div className="patient-view">
+          <h1 className="fw-bold text-primary mb-3">Your Progress Summary</h1>
+          <div className="card patient-card p-4 mb-4 text-center">
+            <h2 className="display-2 fw-bold text-warning mb-1"><i className="bi bi-star-fill me-2"></i>{sessions.length}</h2>
+            <div className="fs-4 fw-bold text-muted">Activities Completed</div>
+          </div>
+        </div>
+      );
+    }
+
+    // Caregiver Dashboard View
+    function CaregiverDashboardView({ user }) {
+      const [sessions, setSessions] = useState([]);
+      const [recs, setRecs] = useState([]);
+
+      useEffect(() => {
+        apiCall('/sessions/patient/2').then(setSessions).catch(console.error);
+        apiCall('/recommendations/2').then(setRecs).catch(console.error);
+      }, []);
+
+      const latestRec = recs.length > 0 ? recs[0] : null;
+
+      return (
+        <div>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <span className="badge bg-dark fs-6 px-3 py-1 rounded-pill mb-1">Caregiver Portal</span>
+              <h1 className="fw-bold mb-0">Patient Performance Dashboard</h1>
+            </div>
+          </div>
+
+          <div className="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+            <div className="row align-items-center">
+              <div className="col-md-4">
+                <h3 className="fw-bold text-primary mb-0">Robert Miller (Age 74)</h3>
+                <span className="text-muted">Patient ID: #2</span>
+              </div>
+              <div className="col-md-4">
+                <div className="text-muted fs-6 fw-bold">ML PERFORMANCE RATING</div>
+                <span className="badge bg-success fs-4 px-3 py-2">{latestRec?.performance_category || 'Normal Progress'}</span>
+              </div>
+              <div className="col-md-4">
+                <div className="text-muted fs-6 fw-bold">RECOMMENDED DIFFICULTY</div>
+                <div className="fs-3 fw-bold text-primary">{latestRec?.recommended_difficulty || 'Medium'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 className="fw-bold mb-3">Historical Activity Sessions Table</h4>
+            <div className="table-responsive">
+              <table className="table table-hover align-middle">
+                <thead className="table-light">
+                  <tr>
+                    <th>Activity</th>
+                    <th>Score</th>
+                    <th>Accuracy</th>
+                    <th>Time</th>
+                    <th>Mistakes</th>
+                    <th>Difficulty</th>
+                    <th>ML Classification</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sessions.map(s => (
+                    <tr key={s.id}>
+                      <td className="fw-bold text-primary">{s.activity_name || `Activity #${s.activity_id}`}</td>
+                      <td className="fw-bold">{s.score} pts</td>
+                      <td>{s.accuracy}%</td>
+                      <td>{s.completion_time}s</td>
+                      <td>{s.mistakes}</td>
+                      <td><span className="badge bg-secondary">{s.difficulty}</span></td>
+                      <td><span className="badge bg-success">{s.performance_category}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

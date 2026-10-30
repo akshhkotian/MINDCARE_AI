@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+*/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python
+venv/
+*/venv/
+env/
+*/env/
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*/dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables & local secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Databases & local logs
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Local sandbox scripts
+powershell.cmd
