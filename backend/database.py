@@ -8,26 +8,38 @@ USE_SQLITE_FALLBACK = False
 
 def get_db_connection():
     """
-    Attempts to connect to MySQL database as specified in config.
-    If MySQL server connection fails, falls back to SQLite for robust local execution.
+    Attempts to connect to MySQL database as specified in config (supports cloud hosts & SSL).
+    If MySQL server connection fails or is not configured, falls back to SQLite for robust local execution.
     """
     global USE_SQLITE_FALLBACK
     if not USE_SQLITE_FALLBACK:
         try:
             import pymysql
-            connection = pymysql.connect(
-                host=Config.DB_HOST,
-                port=Config.DB_PORT,
-                user=Config.DB_USER,
-                password=Config.DB_PASSWORD,
-                database=Config.DB_NAME,
-                cursorclass=pymysql.cursors.DictCursor,
-                autocommit=True,
-                connect_timeout=3
-            )
+            ssl_opts = None
+            if getattr(Config, 'DB_SSL', False) or any(h in (Config.DB_HOST or '').lower() for h in ['tidb', 'aiven', 'planetscale', 'rds.amazonaws.com', 'clever-cloud']):
+                import ssl
+                ssl_opts = ssl.create_default_context()
+
+            conn_kwargs = {
+                'host': Config.DB_HOST,
+                'port': Config.DB_PORT,
+                'user': Config.DB_USER,
+                'password': Config.DB_PASSWORD,
+                'database': Config.DB_NAME,
+                'cursorclass': pymysql.cursors.DictCursor,
+                'autocommit': True,
+                'connect_timeout': 10 if (Config.DB_HOST not in ['localhost', '127.0.0.1']) else 2
+            }
+            if ssl_opts is not None:
+                conn_kwargs['ssl'] = ssl_opts
+
+            connection = pymysql.connect(**conn_kwargs)
             return connection
         except Exception as e:
-            print(f"[Database Warning] MySQL Connection failed ({e}). Falling back to SQLite database at {Config.SQLITE_DB_PATH}")
+            if Config.DB_HOST not in ['localhost', '127.0.0.1']:
+                print(f"[Database Warning] Remote MySQL connection to {Config.DB_HOST} failed ({e}). Falling back to SQLite database at {Config.SQLITE_DB_PATH}")
+            else:
+                print(f"[Database Info] Local MySQL server not found. Using SQLite fallback database at {Config.SQLITE_DB_PATH}")
             USE_SQLITE_FALLBACK = True
 
     # SQLite fallback connection
@@ -38,6 +50,7 @@ def get_db_connection():
 def init_db():
     """
     Initializes database tables and seeds demo records if database is empty.
+    Supports both SQLite and MySQL seamlessly.
     """
     conn = get_db_connection()
     if USE_SQLITE_FALLBACK:
@@ -198,7 +211,7 @@ def init_db():
                 (8, 'Simple Puzzles', 'Solve odd-one-out and basic pattern completion challenges.')
             ]
             cursor.executemany("INSERT INTO activities (id, name, description) VALUES (?, ?, ?)", activities)
-            
+
             # Insert Reminders
             reminders = [
                 (1, 2, 1, 'Morning Hydration', 'Drink a large glass of warm water after waking up.', '2026-09-10', '08:00 AM', 'Daily', 'Pending'),
@@ -258,12 +271,190 @@ def init_db():
         # MySQL Initialization
         try:
             with conn.cursor() as cursor:
-                # Read schema script or execute table checks
-                pass
+                mysql_tables = [
+                    '''CREATE TABLE IF NOT EXISTS users (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        email VARCHAR(120) NOT NULL UNIQUE,
+                        password VARCHAR(255) NOT NULL,
+                        role VARCHAR(20) NOT NULL DEFAULT 'patient',
+                        age INT NULL,
+                        caregiver_id INT NULL,
+                        caregiver_code VARCHAR(50) NULL UNIQUE,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (caregiver_id) REFERENCES users(id) ON DELETE SET NULL
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''',
+                    
+                    '''CREATE TABLE IF NOT EXISTS caregiver_requests (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        patient_id INT NOT NULL,
+                        caregiver_id INT NOT NULL,
+                        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                        requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        responded_at DATETIME NULL,
+                        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY (caregiver_id) REFERENCES users(id) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''',
+                    
+                    '''CREATE TABLE IF NOT EXISTS activities (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        description TEXT,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''',
+                    
+                    '''CREATE TABLE IF NOT EXISTS activity_sessions (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        patient_id INT NOT NULL,
+                        activity_id INT NOT NULL,
+                        score INT NOT NULL DEFAULT 0,
+                        accuracy FLOAT NOT NULL DEFAULT 0.0,
+                        completion_time INT NOT NULL DEFAULT 0,
+                        mistakes INT NOT NULL DEFAULT 0,
+                        attempts INT NOT NULL DEFAULT 1,
+                        difficulty VARCHAR(20) NOT NULL DEFAULT 'Easy',
+                        performance_category VARCHAR(50) NOT NULL DEFAULT 'Normal Progress',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''',
+                    
+                    '''CREATE TABLE IF NOT EXISTS recommendations (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        patient_id INT NOT NULL,
+                        activity_id INT NOT NULL,
+                        performance_category VARCHAR(50) NOT NULL,
+                        recommended_difficulty VARCHAR(20) NOT NULL,
+                        recommendation_reason TEXT NULL,
+                        caregiver_reason TEXT NULL,
+                        score FLOAT DEFAULT 0.0,
+                        stage VARCHAR(50) DEFAULT 'Personalized Stage',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''',
+                    
+                    '''CREATE TABLE IF NOT EXISTS reminders (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        patient_id INT NOT NULL,
+                        caregiver_id INT NOT NULL,
+                        title VARCHAR(150) NOT NULL,
+                        description TEXT,
+                        reminder_date VARCHAR(20) NOT NULL,
+                        reminder_time VARCHAR(20) NOT NULL,
+                        repeat_option VARCHAR(20) DEFAULT 'None',
+                        status VARCHAR(20) DEFAULT 'Pending',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY (caregiver_id) REFERENCES users(id) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''',
+                    
+                    '''CREATE TABLE IF NOT EXISTS assistance_requests (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        patient_id INT NOT NULL,
+                        caregiver_id INT NULL,
+                        message TEXT,
+                        status VARCHAR(20) DEFAULT 'Pending',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''',
+                    
+                    '''CREATE TABLE IF NOT EXISTS memory_items (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        patient_id INT NOT NULL,
+                        title VARCHAR(100) NOT NULL,
+                        category VARCHAR(50) NOT NULL,
+                        description TEXT NOT NULL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''',
+                    
+                    '''CREATE TABLE IF NOT EXISTS familiar_people (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        patient_id INT NOT NULL,
+                        caregiver_id INT NOT NULL,
+                        name VARCHAR(100) NOT NULL,
+                        relationship VARCHAR(100) NOT NULL,
+                        photo_path TEXT NOT NULL,
+                        description TEXT NULL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY (caregiver_id) REFERENCES users(id) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'''
+                ]
+
+                for tbl_sql in mysql_tables:
+                    cursor.execute(tbl_sql)
+
+                # Seed initial data if users table is empty
+                cursor.execute("SELECT COUNT(*) AS cnt FROM users")
+                cnt_row = cursor.fetchone()
+                if cnt_row and cnt_row['cnt'] == 0:
+                    demo_password = generate_password_hash("password123")
+                    cursor.execute('''
+                        INSERT INTO users (id, name, email, password, role, age, caregiver_id, caregiver_code)
+                        VALUES (1, 'Dr. Sarah Jenkins', 'caregiver@mindcare.ai', %s, 'caregiver', 42, NULL, 'MC-CG-1001')
+                    ''', (demo_password,))
+                    cursor.execute('''
+                        INSERT INTO users (id, name, email, password, role, age, caregiver_id)
+                        VALUES (2, 'Robert Miller', 'patient@mindcare.ai', %s, 'patient', 74, 1)
+                    ''', (demo_password,))
+                    cursor.execute('''
+                        INSERT INTO caregiver_requests (id, patient_id, caregiver_id, status)
+                        VALUES (1, 2, 1, 'accepted')
+                    ''')
+                    fam_people = [
+                        (1, 2, 1, 'Anitha Miller', 'Daughter', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400', 'Calls every evening at 6:00 PM. Lives in Chicago.'),
+                        (2, 2, 1, 'David Miller', 'Son', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400', 'Visits every Sunday morning. Loves playing chess with you.'),
+                        (3, 2, 1, 'Sarah Miller', 'Granddaughter', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400', 'Loves gardening and baking cookies with you on weekends.')
+                    ]
+                    cursor.executemany("INSERT INTO familiar_people (id, patient_id, caregiver_id, name, relationship, photo_path, description) VALUES (%s, %s, %s, %s, %s, %s, %s)", fam_people)
+
+                    activities = [
+                        (1, 'Memory Matching', 'Match hidden pairs of cards to exercise visual memory.'),
+                        (2, 'Picture Recall', 'Observe objects briefly and recall what was shown.'),
+                        (3, 'Sequence Memory', 'Remember and repeat a numbered light-up sequence.'),
+                        (4, 'Object Recognition', 'Identify everyday household objects from clear pictures.'),
+                        (5, 'Word Memory', 'Memorize a short word list and identify them from options.'),
+                        (6, 'Name & Face Recognition', 'Associate friendly faces with their correct names.'),
+                        (7, 'Daily Event Sequencing', 'Arrange daily routine activities into correct chronological order.'),
+                        (8, 'Simple Puzzles', 'Solve odd-one-out and basic pattern completion challenges.')
+                    ]
+                    cursor.executemany("INSERT INTO activities (id, name, description) VALUES (%s, %s, %s)", activities)
+
+                    reminders = [
+                        (1, 2, 1, 'Morning Hydration', 'Drink a large glass of warm water after waking up.', '2026-09-10', '08:00 AM', 'Daily', 'Pending'),
+                        (2, 2, 1, 'Cognitive Activity', 'Complete 15 minutes of Memory Matching on MindCare AI.', '2026-09-10', '10:30 AM', 'Daily', 'Pending'),
+                        (3, 2, 1, 'Afternoon Walk', 'Take a 20-minute gentle walk in the garden with family.', '2026-09-10', '04:00 PM', 'Daily', 'Pending')
+                    ]
+                    cursor.executemany("INSERT INTO reminders (id, patient_id, caregiver_id, title, description, reminder_date, reminder_time, repeat_option, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", reminders)
+
+                    mem_items = [
+                        (1, 2, 'Anitha Miller', 'Family', 'Daughter — Calls every evening at 6:00 PM. Lives in Chicago.'),
+                        (2, 2, 'David Miller', 'Family', 'Son — Visits every Sunday morning. Loves playing chess with you.'),
+                        (3, 2, 'Evening Herbal Tea', 'Routine', 'Enjoy a warm chamomile tea at 7:30 PM before bed.'),
+                        (4, 2, 'Home Address', 'Place', '142 Maplewood Drive, Apartment 4B.')
+                    ]
+                    cursor.executemany("INSERT INTO memory_items (id, patient_id, title, category, description) VALUES (%s, %s, %s, %s, %s)", mem_items)
+
+                    sessions = [
+                        (2, 1, 80, 85.0, 42, 2, 1, 'Easy', 'Good Progress'),
+                        (2, 2, 70, 75.0, 55, 3, 1, 'Easy', 'Normal Progress'),
+                        (2, 4, 90, 90.0, 30, 1, 1, 'Easy', 'Good Progress'),
+                        (2, 3, 60, 60.0, 75, 5, 2, 'Medium', 'Needs Support')
+                    ]
+                    cursor.executemany("INSERT INTO activity_sessions (patient_id, activity_id, score, accuracy, completion_time, mistakes, attempts, difficulty, performance_category) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", sessions)
+
+                    recs = [
+                        (2, 3, 'Needs Support', 'Easy', "Let's practice remembering sequences today to strengthen your pattern recall.", "Sequence Memory accuracy is 60.0% with 5 mistakes. Recommended Easy level for targeted pattern recall reinforcement.", 92.5, 'Personalized Stage'),
+                        (2, 1, 'Good Progress', 'Medium', "Great job on Memory Matching! Let's try the Medium challenge today.", "Memory Matching accuracy is 85.0% with low mistakes. Recommended Medium level for gradual cognitive progression.", 78.0, 'Personalized Stage')
+                    ]
+                    cursor.executemany("INSERT INTO recommendations (patient_id, activity_id, performance_category, recommended_difficulty, recommendation_reason, caregiver_reason, score, stage) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", recs)
+
             conn.close()
-            print("[Database] Connected to MySQL database.")
+            print("[Database] Connected to MySQL database and verified schema tables.")
         except Exception as e:
-            print(f"[Database Error] Failed to initialize MySQL: {e}")
+            print(f"[Database Error] Failed to initialize MySQL schema: {e}")
 
 def execute_query(query, params=(), fetchone=False, fetchall=False, commit=False):
     """

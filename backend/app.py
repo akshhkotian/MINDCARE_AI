@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from config import Config
 from database import init_db
@@ -18,7 +18,8 @@ from routes.caregiver_requests import caregiver_requests_bp
 from routes.familiar_people import familiar_people_bp
 
 def create_app():
-    app = Flask(__name__, static_folder='static', static_url_path='')
+    static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+    app = Flask(__name__, static_folder=static_folder, static_url_path='')
     app.config.from_object(Config)
 
     # Enable CORS for frontend cross-origin access
@@ -54,20 +55,45 @@ def create_app():
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/')
-    def root():
-        return app.send_static_file('index.html')
-
     @app.route('/api/health')
     def health_check():
-        return jsonify({'status': 'Healthy', 'database': 'Connected'}), 200
+        from database import USE_SQLITE_FALLBACK
+        return jsonify({
+            'status': 'Healthy',
+            'engine': 'SQLite' if USE_SQLITE_FALLBACK else 'MySQL',
+            'cross_device_sync': True
+        }), 200
+
+    @app.route('/')
+    def root():
+        index_file = os.path.join(app.static_folder, 'index.html')
+        if os.path.exists(index_file):
+            return app.send_static_file('index.html')
+        return jsonify({
+            'message': 'MindCare AI Flask API is active.',
+            'status': 'Healthy'
+        }), 200
+
+    @app.errorhandler(404)
+    def handle_not_found(e):
+        # Do not catch unhandled /api/* calls as HTML
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'API endpoint not found'}), 404
+
+        # For all client-side React routes (e.g. /login, /dashboard, /activities), serve index.html
+        index_file = os.path.join(app.static_folder, 'index.html')
+        if os.path.exists(index_file):
+            return app.send_static_file('index.html'), 200
+
+        return jsonify({'error': 'Not found'}), 404
 
     return app
 
 if __name__ == '__main__':
     app = create_app()
+    port = int(os.getenv('PORT', 5000))
     print("==================================================")
     print("  MindCare AI Flask Backend Server Running")
-    print("  URL: http://127.0.0.1:5000")
+    print(f"  URL: http://127.0.0.1:{port}")
     print("==================================================")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)

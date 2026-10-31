@@ -1,7 +1,25 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
-  const hostname = window.location.hostname || 'localhost';
+  // 1. Explicitly configured via environment variable (e.g., decoupled hosting with Vercel frontend + Render backend)
+  if (import.meta.env.VITE_API_BASE_URL) {
+    let url = import.meta.env.VITE_API_BASE_URL.trim();
+    if (!url.endsWith('/api')) {
+      url = url.replace(/\/+$/, '') + '/api';
+    }
+    return url;
+  }
+
+  // 2. Production build served by the backend on the same origin (e.g. Render / Railway full-stack deploy)
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    const isLocalDevServer = window.location.port === '5173' || window.location.port === '3000';
+    if (!isLocalDevServer && window.location.protocol.startsWith('http')) {
+      return `${window.location.origin}/api`;
+    }
+  }
+
+  // 3. Local development fallback
+  const hostname = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname : 'localhost';
   return `http://${hostname}:5000/api`;
 };
 

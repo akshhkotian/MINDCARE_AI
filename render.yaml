@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: mindcare-ai
+    runtime: python
+    plan: free
+    buildCommand: "cd frontend && npm install && npm run build && cd .. && rm -rf backend/static && cp -r frontend/dist backend/static && pip install -r backend/requirements.txt"
+    startCommand: "gunicorn --chdir backend 'app:create_app()'"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+

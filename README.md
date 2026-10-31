@@ -204,6 +204,42 @@ c:/Alzheimer/
 
 ---
 
+## 🌐 Cloud Deployment & Cross-Device Synchronization
+
+MindCare AI is production-ready for free cloud hosting with real-time **cross-device data synchronization**. When you log in with the same account on a laptop, mobile phone, or tablet, all completed activities, reminders, caregiver connections, and memory cards immediately sync across all devices.
+
+### Option 1: Unified Full-Stack Deployment on Render (Recommended - Free)
+
+1. **Push your code to GitHub** (already configured at `https://github.com/akshhkotian/MINDCARE_AI.git`).
+2. Go to **[Render.com](https://render.com)** and sign in with GitHub.
+3. Click **New +** → **Web Service**.
+4. Connect the repository `MINDCARE_AI`.
+5. Render will automatically detect the settings from `render.yaml` or fill in:
+   - **Environment**: `Python`
+   - **Build Command**: 
+     ```bash
+     cd frontend && npm install && npm run build && cd .. && rm -rf backend/static && cp -r frontend/dist backend/static && pip install -r backend/requirements.txt
+     ```
+   - **Start Command**:
+     ```bash
+     gunicorn --chdir backend "app:create_app()"
+     ```
+6. Click **Deploy Web Service**.
+7. Once deployed, Render gives you a public URL (e.g. `https://mindcare-ai-xxxx.onrender.com`).
+   - Open this URL on your **laptop** and log in.
+   - Open the **same URL on your phone or tablet** and log in with the same credentials.
+   - Any game played, reminder added, or note created on one device will instantly reflect on the other!
+
+### Option 2: Connecting a Cloud Database (For Permanent Data Persistence)
+
+For 100% permanent cloud persistence across container reboots, connect a free managed MySQL database (e.g., from [TiDB Cloud](https://tidbcloud.com) or [Aiven](https://aiven.io) or [Railway](https://railway.app)):
+
+In Render/Railway Environment Variables, add:
+- `DATABASE_URL` = `mysql://user:password@gateway.tidbcloud.com:4000/mindcare_ai?ssl-mode=REQUIRED`
+*(The backend automatically creates all tables, seeds demo data, and enables SSL encryption).*
+
+---
+
 ## 📜 License & Academic Notes
 
 Developed as an academic prototype for supportive cognitive care and memory assistance. All machine learning classifications reflect activity performance metrics and do not diagnose medical conditions.
