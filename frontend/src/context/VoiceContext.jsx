@@ -52,7 +52,7 @@ export const INDIC_VOICE_PROFILES = {
   },
   'en-IN': {
     code: 'en-IN',
-    name: 'English (India)',
+    name: 'English',
     preferredNames: ['Neerja', 'Prabhat', 'Google English (India)', 'Ravi', 'Heera', 'Veena', 'en-in', 'india', 'indian'],
     sampleText: 'Namaste! Welcome to MindCare AI. I am your cognitive and memory care assistant.'
   }

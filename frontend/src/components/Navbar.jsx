@@ -29,7 +29,7 @@ const Navbar = () => {
     <nav className="navbar navbar-expand-lg navbar-bubble-wrapper sticky-top">
       <div className="container-fluid px-3 px-md-4">
         <div className="navbar-bubble-container d-flex align-items-center justify-content-between w-100 flex-nowrap">
-          
+
           {/* Brand "MindCareAi" - Top Left Corner */}
           <div className="d-flex align-items-center gap-2 gap-lg-3 flex-grow-1 flex-nowrap overflow-hidden">
             <Link className="navbar-brand-bubble d-flex align-items-center gap-2 text-decoration-none flex-shrink-0" to="/">
@@ -145,10 +145,10 @@ const Navbar = () => {
               <i className={`bi ${theme === 'dark' ? 'bi-sun-fill text-warning fs-4' : 'bi-moon-stars-fill text-dark fs-4'}`}></i>
             </button>
 
-            <button 
-              className="navbar-toggler bubble-toggler border-0 p-2" 
-              type="button" 
-              data-bs-toggle="collapse" 
+            <button
+              className="navbar-toggler bubble-toggler border-0 p-2"
+              type="button"
+              data-bs-toggle="collapse"
               data-bs-target="#navbarContent"
               aria-controls="navbarContent"
               aria-expanded="false"

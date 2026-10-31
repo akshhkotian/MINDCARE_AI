@@ -16,7 +16,7 @@ const LanguageSelector = ({ variant = 'navbar', className = '' }) => {
         >
           {SUPPORTED_LANGUAGES.map((lang) => (
             <option key={lang.code} value={lang.code}>
-              {lang.flag} {lang.nativeName} ({lang.name})
+              {lang.flag} {lang.nativeName} {lang.code !== 'en' ? `(${lang.name})` : ''}
             </option>
           ))}
         </select>
@@ -67,9 +67,11 @@ const LanguageSelector = ({ variant = 'navbar', className = '' }) => {
                 <span className="d-flex align-items-center gap-2">
                   <span className="fs-5">{lang.flag}</span>
                   <span>{lang.nativeName}</span>
-                  <small className={isSelected ? 'text-light' : 'text-muted'}>
-                    ({lang.name})
-                  </small>
+                  {lang.code !== 'en' && (
+                    <small className={isSelected ? 'text-light' : 'text-muted'}>
+                      ({lang.name})
+                    </small>
+                  )}
                 </span>
                 {isSelected && <i className="bi bi-check-lg ms-2"></i>}
               </button>

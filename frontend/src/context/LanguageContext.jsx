@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 export const SUPPORTED_LANGUAGES = [
-  { code: 'en', name: 'English (India)', nativeName: 'English (India)', voiceLang: 'en-IN', flag: '🇮🇳' },
+  { code: 'en', name: 'English', nativeName: 'English', voiceLang: 'en-IN', flag: '🇮🇳' },
   { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', voiceLang: 'hi-IN', flag: '🇮🇳' },
   { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ', voiceLang: 'kn-IN', flag: '🇮🇳' },
   { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்', voiceLang: 'ta-IN', flag: '🇮🇳' },
