@@ -74,10 +74,7 @@ const PatientReminders = () => {
             <span className="badge bg-rose-light text-rose fs-6 px-3 py-2 rounded-pill mb-2 border border-rose">
               <i className="bi bi-bell-fill me-1"></i> Patient Daily Schedule
             </span>
-            <h1 className="fw-extrabold text-rose mb-1">Your Daily Reminders</h1>
-            <p className="text-secondary fs-4 mb-0">
-              Important tasks and schedules configured by your caregiver.
-            </p>
+            <h1 className="fw-extrabold text-rose mb-0">Your Daily Reminders</h1>
           </div>
           <div className="d-flex flex-wrap gap-2">
             <button
@@ -131,14 +128,17 @@ const PatientReminders = () => {
       ) : filteredReminders.length === 0 ? (
         <div className="card border-0 rounded-4 p-5 text-center my-4 bg-white shadow-sm">
           <i className="bi bi-calendar2-check display-1 text-success mb-3"></i>
-          <h2 className="fw-bold text-dark">No Reminders</h2>
-          <p className="fs-4 text-muted max-w-lg mx-auto mb-0">
-            {filter === 'Completed'
-              ? 'You have not completed any reminders yet today.'
-              : filter === 'Pending'
-              ? 'Great news! All your daily tasks are completed.'
-              : 'Your caregiver has not added any active reminders yet.'}
-          </p>
+          <h2 className="fw-bold text-dark mb-0">No Reminders</h2>
+          {filter === 'Completed' && (
+            <p className="fs-4 text-muted max-w-lg mx-auto mt-2 mb-0">
+              You have not completed any reminders yet today.
+            </p>
+          )}
+          {filter === 'Pending' && (
+            <p className="fs-4 text-muted max-w-lg mx-auto mt-2 mb-0">
+              Great news! All your daily tasks are completed.
+            </p>
+          )}
         </div>
       ) : (
         <div className="row g-4">

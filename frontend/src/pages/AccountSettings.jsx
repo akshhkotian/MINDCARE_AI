@@ -320,12 +320,9 @@ const AccountSettings = () => {
         <div className="col-lg-6">
           {/* Language & Indic Voice Preferences Card */}
           <div className="card border-rose rounded-4 p-4 shadow-sm bg-white mb-4" style={{ borderLeft: '6px solid #8FAF9A' }}>
-            <h3 className="fw-bold text-rose mb-2">
+            <h3 className="fw-bold text-rose mb-3">
               <i className="bi bi-translate me-2"></i> {t('languagePreferences', 'Language & Indic Voice Preferences')}
             </h3>
-            <p className="text-secondary fs-6 mb-3">
-              {t('selectPreferredLanguage', 'Select your preferred Indian language for text display and native voice speech:')}
-            </p>
             <LanguageSelector variant="select" className="mb-3" />
 
             {/* Indic Voice Status & Controls */}
