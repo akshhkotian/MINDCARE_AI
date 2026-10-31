@@ -59,7 +59,6 @@ const Login = () => {
                   <i className="bi bi-heart-pulse-fill fs-2"></i>
                 </div>
                 <h2 className="fw-bold text-rose mb-1">{t('welcomeTitle', 'Welcome to MindCare AI')}</h2>
-                <p className="text-secondary fs-5 mb-0">{t('welcomeSubtitle', 'Cognitive & Memory Care Assistant')}</p>
               </div>
 
               {errMessage && (
