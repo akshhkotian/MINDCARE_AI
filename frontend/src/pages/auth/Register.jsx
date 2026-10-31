@@ -15,7 +15,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -35,12 +35,14 @@ const Register = () => {
         caregiver_code: caregiverCode ? caregiverCode.trim().toUpperCase() : null
       });
 
-      let msg = 'Registration successful! Redirecting to login...';
-      if (res.user && res.user.caregiver_code) {
-        msg = `Registration successful! Your Caregiver ID is ${res.user.caregiver_code}. Redirecting to login...`;
+      setSuccessMessage('Account ready! Signing you in automatically...');
+      
+      try {
+        await login(email, password, role);
+        navigate(role === 'caregiver' ? '/caregiver/dashboard' : '/patient/dashboard');
+      } catch (loginErr) {
+        setTimeout(() => navigate('/login'), 1500);
       }
-      setSuccessMessage(msg);
-      setTimeout(() => navigate('/login'), 2500);
     } catch (err) {
       setErrMessage(err.message || 'Registration failed.');
     } finally {

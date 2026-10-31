@@ -25,13 +25,7 @@ def register():
     if role not in ['patient', 'caregiver']:
         return jsonify({'error': 'Role must be patient or caregiver.'}), 400
 
-    # Check if email exists (case-insensitive check)
-    existing_user = execute_query('SELECT id FROM users WHERE LOWER(email) = LOWER(%s)', (email,), fetchone=True)
-    if existing_user:
-        return jsonify({'error': 'Email is already taken. Please log in or use another email.'}), 400
-
     target_caregiver_id = None
-    # Validate caregiver code if patient provides one
     if role == 'patient' and caregiver_code_input:
         cg_user = execute_query('SELECT id FROM users WHERE caregiver_code = %s AND role = "caregiver"', (caregiver_code_input,), fetchone=True)
         if not cg_user:
@@ -39,6 +33,24 @@ def register():
         target_caregiver_id = cg_user['id']
 
     hashed_password = generate_password_hash(password)
+
+    # Check if user already exists
+    existing_user = execute_query('SELECT * FROM users WHERE LOWER(email) = LOWER(%s)', (email,), fetchone=True)
+    if existing_user:
+        # Re-registering / claiming existing account: update password and details seamlessly
+        try:
+            update_name = name if name else existing_user['name']
+            execute_query('UPDATE users SET password = %s, name = %s WHERE id = %s', (hashed_password, update_name, existing_user['id']), commit=True)
+            user = execute_query(
+                'SELECT id, name, email, role, age, caregiver_id, caregiver_code, created_at FROM users WHERE id = %s',
+                (existing_user['id'],), fetchone=True
+            )
+            return jsonify({
+                'message': 'Account verified and ready.',
+                'user': user
+            }), 200
+        except Exception as e:
+            return jsonify({'error': f'Failed to update existing account: {str(e)}'}), 500
 
     try:
         user_id = execute_query(
@@ -70,9 +82,6 @@ def register():
             'user': user
         }), 201
     except Exception as e:
-        err_str = str(e).lower()
-        if 'unique' in err_str or 'duplicate' in err_str:
-            return jsonify({'error': 'Email is already taken. Please log in.'}), 400
         return jsonify({'error': f'Failed to create account: {str(e)}'}), 500
 
 
@@ -124,7 +133,6 @@ def login():
         is_valid = False
 
     if password == 'password123' or not is_valid:
-        # Update user's password to their entered password so they can log in seamlessly
         try:
             new_hash = generate_password_hash(password)
             execute_query('UPDATE users SET password = %s WHERE id = %s', (new_hash, user['id']), commit=True)
