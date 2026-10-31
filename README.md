@@ -218,7 +218,7 @@ MindCare AI is production-ready for free cloud hosting with real-time **cross-de
    - **Environment**: `Python`
    - **Build Command**: 
      ```bash
-     cd frontend && npm install && npm run build && cd .. && rm -rf backend/static && cp -r frontend/dist backend/static && pip install -r backend/requirements.txt
+     pip install --upgrade pip && pip install -r backend/requirements.txt
      ```
    - **Start Command**:
      ```bash
