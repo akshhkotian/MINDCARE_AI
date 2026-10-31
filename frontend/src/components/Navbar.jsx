@@ -69,11 +69,6 @@ const Navbar = () => {
                             {t('reminders', 'Reminders & Medicines')}
                           </Link>
                         </li>
-                        <li className="nav-item flex-shrink-0">
-                          <Link className={getNavLinkClass('/patient/account')} to="/patient/account">
-                            {t('account', 'Account')}
-                          </Link>
-                        </li>
                       </>
                     )}
 
@@ -96,17 +91,12 @@ const Navbar = () => {
                         </li>
                         <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/caregiver/reminders')} to="/caregiver/reminders">
-                            {t('remindersAndMedicines', 'Reminders & Medicines')}
+                            {t('reminders', 'Reminders & Medicines')}
                           </Link>
                         </li>
                         <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/caregiver/assistance')} to="/caregiver/assistance">
                             {t('helpRequests', 'Help Requests')}
-                          </Link>
-                        </li>
-                        <li className="nav-item flex-shrink-0">
-                          <Link className={getNavLinkClass('/caregiver/account')} to="/caregiver/account">
-                            {t('account', 'Account')}
                           </Link>
                         </li>
                       </>
