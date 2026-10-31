@@ -27,49 +27,49 @@ const Navbar = () => {
 
   return (
     <nav className="navbar navbar-expand-lg navbar-bubble-wrapper sticky-top">
-      <div className="container-fluid max-w-1200 px-3 px-md-4">
-        <div className="navbar-bubble-container d-flex align-items-center justify-content-between w-100">
+      <div className="container-fluid px-3 px-md-4">
+        <div className="navbar-bubble-container d-flex align-items-center justify-content-between w-100 flex-nowrap">
           
           {/* Brand "MindCareAi" - Top Left Corner */}
-          <div className="d-flex align-items-center gap-3 flex-grow-1">
-            <Link className="navbar-brand-bubble d-flex align-items-center gap-2 text-decoration-none" to="/">
+          <div className="d-flex align-items-center gap-2 gap-lg-3 flex-grow-1 flex-nowrap overflow-hidden">
+            <Link className="navbar-brand-bubble d-flex align-items-center gap-2 text-decoration-none flex-shrink-0" to="/">
               <i className="bi bi-heart-pulse-fill fs-4 text-rose"></i>
               <span className="brand-text fs-4 fw-extrabold">{t('brand', 'MindCareAi')}</span>
             </Link>
 
-            {/* Nav Items Group directly touching/adjacent to Brand */}
-            <div className="collapse navbar-collapse" id="navbarContent">
+            {/* Nav Items Group directly touching/adjacent to Brand in ONE single line */}
+            <div className="collapse navbar-collapse flex-nowrap" id="navbarContent">
               {user ? (
-                <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between w-100 gap-2 mt-3 mt-lg-0">
-                  <ul className="navbar-nav d-flex flex-row flex-wrap align-items-center gap-1 gap-lg-2 mb-0 ms-lg-3">
+                <div className="d-flex flex-row align-items-center justify-content-between w-100 gap-2 flex-nowrap">
+                  <ul className="navbar-nav d-flex flex-row flex-nowrap align-items-center gap-1 gap-xl-2 mb-0 ms-lg-2 overflow-x-auto no-scrollbar py-1">
                     {isPatient && (
                       <>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/patient/dashboard')} to="/patient/dashboard">
                             {t('home', 'Home')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/patient/activities')} to="/patient/activities">
                             {t('activities', 'Activities')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/patient/familiar-faces')} to="/patient/familiar-faces">
                             {t('familiarFaces', 'Familiar Faces')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/patient/memory')} to="/patient/memory">
                             {t('memoryCare', 'Memory Care')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/patient/reminders')} to="/patient/reminders">
-                            {t('reminders', 'Reminders')}
+                            {t('reminders', 'Reminders & Medicines')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/patient/account')} to="/patient/account">
                             {t('account', 'Account')}
                           </Link>
@@ -79,32 +79,32 @@ const Navbar = () => {
 
                     {isCaregiver && (
                       <>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/caregiver/dashboard')} to="/caregiver/dashboard">
                             {t('patients', 'Patients')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/caregiver/familiar-faces')} to="/caregiver/familiar-faces">
                             {t('familiarPeople', 'Familiar People')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/caregiver/memory')} to="/caregiver/memory">
                             {t('memoryCare', 'Memory Care')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/caregiver/reminders')} to="/caregiver/reminders">
-                            {t('reminders', 'Reminders')}
+                            {t('remindersAndMedicines', 'Reminders & Medicines')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/caregiver/assistance')} to="/caregiver/assistance">
                             {t('helpRequests', 'Help Requests')}
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item flex-shrink-0">
                           <Link className={getNavLinkClass('/caregiver/account')} to="/caregiver/account">
                             {t('account', 'Account')}
                           </Link>
@@ -114,19 +114,19 @@ const Navbar = () => {
                   </ul>
 
                   {/* Right Actions */}
-                  <div className="d-flex align-items-center gap-2 flex-wrap ms-lg-auto mt-2 mt-lg-0">
-                    <Link to={isPatient ? "/patient/account" : "/caregiver/account"} className="badge badge-bubble-rose px-3 py-2 fs-6 text-decoration-none cursor-pointer" title="Manage Account">
+                  <div className="d-flex align-items-center gap-2 flex-nowrap ms-auto flex-shrink-0">
+                    <Link to={isPatient ? "/patient/account" : "/caregiver/account"} className="badge badge-bubble-rose px-3 py-2 fs-6 text-decoration-none cursor-pointer flex-shrink-0" title="Manage Account">
                       <i className="bi bi-person-circle me-1"></i> {user.name}
                     </Link>
-                    <button onClick={handleLogout} className="btn bubble-btn-secondary btn-sm px-3 py-1 fs-6">
+                    <button onClick={handleLogout} className="btn bubble-btn-secondary btn-sm px-3 py-1 fs-6 flex-shrink-0">
                       <i className="bi bi-box-arrow-right me-1"></i> {t('logout', 'Logout')}
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="d-flex align-items-center gap-2 ms-lg-auto mt-3 mt-lg-0">
-                  <Link to="/login" className="btn bubble-btn-secondary px-4 py-2 fw-bold fs-6">{t('login', 'Login')}</Link>
-                  <Link to="/register" className="btn bubble-btn-primary px-4 py-2 fw-bold fs-6">{t('register', 'Register')}</Link>
+                <div className="d-flex align-items-center gap-2 ms-auto flex-nowrap flex-shrink-0">
+                  <Link to="/login" className="btn bubble-btn-secondary px-4 py-2 fw-bold fs-6 flex-shrink-0">{t('login', 'Login')}</Link>
+                  <Link to="/register" className="btn bubble-btn-primary px-4 py-2 fw-bold fs-6 flex-shrink-0">{t('register', 'Register')}</Link>
                 </div>
               )}
             </div>
