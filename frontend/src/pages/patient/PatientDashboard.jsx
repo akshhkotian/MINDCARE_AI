@@ -47,11 +47,15 @@ const PatientDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      const greetingTemplate = t('welcomeVoiceGreeting', 'Welcome back, {name}! What activity would you like to practice today?');
-      speakInstruction(greetingTemplate.replace('{name}', user.name || ''));
+      // Only speak a brief Hello once when freshly logging in
+      const hasGreetedOnLogin = sessionStorage.getItem('mindcare_greeted_login');
+      if (!hasGreetedOnLogin) {
+        sessionStorage.setItem('mindcare_greeted_login', 'true');
+        speakInstruction(`${t('hello', 'Hello')}, ${user.name || ''}!`);
+      }
       fetchData();
     }
-  }, [user, speakInstruction, t]);
+  }, [user]);
 
   const fetchData = async () => {
     try {
@@ -271,14 +275,16 @@ const PatientDashboard = () => {
         <div className="col-md-6 col-lg-3">
           <div 
             onClick={() => navigate('/patient/activities')}
-            className="card patient-card h-100 text-center p-4 cursor-pointer"
+            className="card patient-card h-100 text-center p-4 cursor-pointer d-flex flex-column"
             style={{ borderTop: '6px solid #8FAF9A' }}
           >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <i className="bi bi-controller display-3 text-rose mb-3"></i>
-              <h3 className="fw-bold mb-2">{t('activities', 'Activities')}</h3>
-              <p className="text-muted fs-6 mb-4">{t('eightExercises', '8 Playable memory exercises.')}</p>
-              <span className="btn patient-btn patient-btn-primary w-100 fs-5">
+            <div className="card-body d-flex flex-column align-items-center justify-content-between p-0 h-100">
+              <div className="d-flex flex-column align-items-center mb-3">
+                <i className="bi bi-controller display-3 text-rose mb-3"></i>
+                <h3 className="fw-bold mb-2">{t('activities', 'Activities')}</h3>
+                <p className="text-muted fs-6 mb-0">{t('eightExercises', '8 Playable memory exercises.')}</p>
+              </div>
+              <span className="btn patient-btn patient-btn-primary w-100 fs-5 py-3 fw-bold mt-auto shadow-sm">
                 {t('playGames', 'Play Games')}
               </span>
             </div>
@@ -288,14 +294,16 @@ const PatientDashboard = () => {
         <div className="col-md-6 col-lg-3">
           <div 
             onClick={() => navigate('/patient/familiar-faces')}
-            className="card patient-card h-100 text-center p-4 cursor-pointer"
-            style={{ borderTop: '6px solid #B8C9B8' }}
+            className="card patient-card h-100 text-center p-4 cursor-pointer d-flex flex-column"
+            style={{ borderTop: '6px solid #8FAF9A' }}
           >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <i className="bi bi-people-fill display-3 text-rose mb-3"></i>
-              <h3 className="fw-bold mb-2">{t('familiarFaces', 'Familiar Faces')}</h3>
-              <p className="text-muted fs-6 mb-4">{t('familyRoutinePhotos', 'View family & play face memory.')}</p>
-              <span className="btn patient-btn patient-btn-primary w-100 fs-5">
+            <div className="card-body d-flex flex-column align-items-center justify-content-between p-0 h-100">
+              <div className="d-flex flex-column align-items-center mb-3">
+                <i className="bi bi-people-fill display-3 text-rose mb-3"></i>
+                <h3 className="fw-bold mb-2">{t('familiarFaces', 'Familiar Faces')}</h3>
+                <p className="text-muted fs-6 mb-0">{t('familyRoutinePhotos', 'View family & play face memory.')}</p>
+              </div>
+              <span className="btn patient-btn patient-btn-primary w-100 fs-5 py-3 fw-bold mt-auto shadow-sm">
                 {t('viewPeople', 'View People')}
               </span>
             </div>
@@ -305,14 +313,16 @@ const PatientDashboard = () => {
         <div className="col-md-6 col-lg-3">
           <div 
             onClick={() => navigate('/patient/memory')}
-            className="card patient-card h-100 text-center p-4 cursor-pointer"
-            style={{ borderTop: '6px solid #C9A66B' }}
+            className="card patient-card h-100 text-center p-4 cursor-pointer d-flex flex-column"
+            style={{ borderTop: '6px solid #8FAF9A' }}
           >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <i className="bi bi-journal-bookmark-fill display-3 text-rose mb-3"></i>
-              <h3 className="fw-bold mb-2">{t('memoryCare', 'Memory Cards')}</h3>
-              <p className="text-muted fs-6 mb-4">{t('notesAddressRoutines', 'Notes, address & routines.')}</p>
-              <span className="btn patient-btn patient-btn-secondary w-100 fs-5">
+            <div className="card-body d-flex flex-column align-items-center justify-content-between p-0 h-100">
+              <div className="d-flex flex-column align-items-center mb-3">
+                <i className="bi bi-journal-bookmark-fill display-3 text-rose mb-3"></i>
+                <h3 className="fw-bold mb-2">{t('memoryCare', 'Memory Cards')}</h3>
+                <p className="text-muted fs-6 mb-0">{t('notesAddressRoutines', 'Notes, address & routines.')}</p>
+              </div>
+              <span className="btn patient-btn patient-btn-primary w-100 fs-5 py-3 fw-bold mt-auto shadow-sm">
                 {t('openCards', 'Open Cards')}
               </span>
             </div>
@@ -322,15 +332,17 @@ const PatientDashboard = () => {
         <div className="col-md-6 col-lg-3">
           <div 
             onClick={() => navigate('/patient/reminders')}
-            className="card patient-card h-100 text-center p-4 cursor-pointer"
+            className="card patient-card h-100 text-center p-4 cursor-pointer d-flex flex-column"
             style={{ borderTop: '6px solid #8FAF9A' }}
           >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <i className="bi bi-alarm-fill display-3 text-rose mb-3"></i>
-              <h3 className="fw-bold mb-2">{t('reminders', 'Reminders')}</h3>
-              <p className="text-muted fs-6 mb-4">{t('waterTeaAlerts', 'Water, tea & daily alerts.')}</p>
-              <span className="btn patient-btn patient-btn-secondary w-100 fs-5">
-                {t('checkSchedule', 'Check')} ({reminders.length})
+            <div className="card-body d-flex flex-column align-items-center justify-content-between p-0 h-100">
+              <div className="d-flex flex-column align-items-center mb-3">
+                <i className="bi bi-alarm-fill display-3 text-rose mb-3"></i>
+                <h3 className="fw-bold mb-2">{t('reminders', 'Reminders & Medicines')}</h3>
+                <p className="text-muted fs-6 mb-0">{t('waterTeaAlerts', 'Water, tea, medicines & daily alerts.')}</p>
+              </div>
+              <span className="btn patient-btn patient-btn-primary w-100 fs-5 py-3 fw-bold mt-auto shadow-sm">
+                {t('checkSchedule', 'Check Schedule')} ({reminders.length})
               </span>
             </div>
           </div>

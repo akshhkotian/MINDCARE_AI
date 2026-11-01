@@ -33,8 +33,10 @@ export const AuthProvider = ({ children }) => {
       let errMsg = 'Login failed.';
       if (err.response && err.response.data && err.response.data.error) {
         errMsg = err.response.data.error;
+      } else if (err.code === 'ECONNABORTED') {
+        errMsg = 'Server took too long to respond. Please try again.';
       } else if (err.code === 'ERR_NETWORK' || !err.response) {
-        errMsg = 'Cannot connect to Flask server. Please make sure "python app.py" is running on port 5000.';
+        errMsg = 'Connecting to server... Please check your internet connection and try again.';
       } else {
         errMsg = err.message || 'Login failed. Please check credentials.';
       }
@@ -52,8 +54,10 @@ export const AuthProvider = ({ children }) => {
       let errMsg = 'Registration failed.';
       if (err.response && err.response.data && err.response.data.error) {
         errMsg = err.response.data.error;
+      } else if (err.code === 'ECONNABORTED') {
+        errMsg = 'Server took too long to respond. Please try again.';
       } else if (err.code === 'ERR_NETWORK' || !err.response) {
-        errMsg = 'Cannot connect to Flask backend server. Please make sure "python app.py" is running on port 5000.';
+        errMsg = 'Connecting to server... Please check your internet connection and try again.';
       } else {
         errMsg = err.message || 'Registration failed.';
       }
@@ -65,6 +69,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     sessionStorage.removeItem('mindcare_user');
+    sessionStorage.removeItem('mindcare_greeted_login');
   };
 
   return (

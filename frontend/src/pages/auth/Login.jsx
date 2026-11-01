@@ -22,6 +22,7 @@ const Login = () => {
     setLoading(true);
 
     try {
+      sessionStorage.removeItem('mindcare_greeted_login');
       const loggedUser = await login(email, password, role);
       if (loggedUser.role === 'caregiver') {
         navigate('/caregiver/dashboard');

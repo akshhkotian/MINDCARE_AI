@@ -176,13 +176,13 @@ def init_db():
             # Insert Caregiver
             cursor.execute('''
                 INSERT INTO users (id, name, email, password, role, age, caregiver_id, caregiver_code)
-                VALUES (1, 'Dr. Sarah Jenkins', 'caregiver@mindcare.ai', ?, 'caregiver', 42, NULL, 'MC-CG-1001')
+                VALUES (1, 'Dr. Priya Sharma', 'caregiver@mindcare.ai', ?, 'caregiver', 42, NULL, 'MC-CG-1001')
             ''', (demo_password,))
             
             # Insert Patient
             cursor.execute('''
                 INSERT INTO users (id, name, email, password, role, age, caregiver_id)
-                VALUES (2, 'Robert Miller', 'patient@mindcare.ai', ?, 'patient', 74, 1)
+                VALUES (2, 'Ramesh Patel', 'patient@mindcare.ai', ?, 'patient', 74, 1)
             ''', (demo_password,))
             
             # Insert Seed Accepted Caregiver Request
@@ -193,9 +193,9 @@ def init_db():
             
             # Insert Seed Familiar People
             fam_people = [
-                (1, 2, 1, 'Anitha Miller', 'Daughter', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400', 'Calls every evening at 6:00 PM. Lives in Chicago.'),
-                (2, 2, 1, 'David Miller', 'Son', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400', 'Visits every Sunday morning. Loves playing chess with you.'),
-                (3, 2, 1, 'Sarah Miller', 'Granddaughter', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400', 'Loves gardening and baking cookies with you on weekends.')
+                (1, 2, 1, 'Anitha Patel', 'Daughter', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400', 'Calls every evening at 6:00 PM. Lives in Bengaluru.'),
+                (2, 2, 1, 'Rahul Patel', 'Son', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400', 'Visits every Sunday morning. Loves playing chess with you.'),
+                (3, 2, 1, 'Pooja Patel', 'Granddaughter', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400', 'Loves gardening and baking cookies with you on weekends.')
             ]
             cursor.executemany("INSERT INTO familiar_people (id, patient_id, caregiver_id, name, relationship, photo_path, description) VALUES (?, ?, ?, ?, ?, ?, ?)", fam_people)
 
@@ -222,10 +222,10 @@ def init_db():
             
             # Insert Memory Items
             mem_items = [
-                (1, 2, 'Anitha Miller', 'Family', 'Daughter — Calls every evening at 6:00 PM. Lives in Chicago.'),
-                (2, 2, 'David Miller', 'Family', 'Son — Visits every Sunday morning. Loves playing chess with you.'),
+                (1, 2, 'Anitha Patel', 'Family', 'Daughter — Calls every evening at 6:00 PM. Lives in Bengaluru.'),
+                (2, 2, 'Rahul Patel', 'Family', 'Son — Visits every Sunday morning. Loves playing chess with you.'),
                 (3, 2, 'Evening Herbal Tea', 'Routine', 'Enjoy a warm chamomile tea at 7:30 PM before bed.'),
-                (4, 2, 'Home Address', 'Place', '142 Maplewood Drive, Apartment 4B.')
+                (4, 2, 'Home Address', 'Place', 'Flat 402, Shanti Niketan Apartments, Bengaluru.')
             ]
             cursor.executemany("INSERT INTO memory_items (id, patient_id, title, category, description) VALUES (?, ?, ?, ?, ?)", mem_items)
             
@@ -393,20 +393,20 @@ def init_db():
                     demo_password = generate_password_hash("password123")
                     cursor.execute('''
                         INSERT INTO users (id, name, email, password, role, age, caregiver_id, caregiver_code)
-                        VALUES (1, 'Dr. Sarah Jenkins', 'caregiver@mindcare.ai', %s, 'caregiver', 42, NULL, 'MC-CG-1001')
+                        VALUES (1, 'Dr. Priya Sharma', 'caregiver@mindcare.ai', %s, 'caregiver', 42, NULL, 'MC-CG-1001')
                     ''', (demo_password,))
                     cursor.execute('''
                         INSERT INTO users (id, name, email, password, role, age, caregiver_id)
-                        VALUES (2, 'Robert Miller', 'patient@mindcare.ai', %s, 'patient', 74, 1)
+                        VALUES (2, 'Ramesh Patel', 'patient@mindcare.ai', %s, 'patient', 74, 1)
                     ''', (demo_password,))
                     cursor.execute('''
                         INSERT INTO caregiver_requests (id, patient_id, caregiver_id, status)
                         VALUES (1, 2, 1, 'accepted')
                     ''')
                     fam_people = [
-                        (1, 2, 1, 'Anitha Miller', 'Daughter', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400', 'Calls every evening at 6:00 PM. Lives in Chicago.'),
-                        (2, 2, 1, 'David Miller', 'Son', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400', 'Visits every Sunday morning. Loves playing chess with you.'),
-                        (3, 2, 1, 'Sarah Miller', 'Granddaughter', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400', 'Loves gardening and baking cookies with you on weekends.')
+                        (1, 2, 1, 'Anitha Patel', 'Daughter', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400', 'Calls every evening at 6:00 PM. Lives in Bengaluru.'),
+                        (2, 2, 1, 'Rahul Patel', 'Son', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400', 'Visits every Sunday morning. Loves playing chess with you.'),
+                        (3, 2, 1, 'Pooja Patel', 'Granddaughter', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400', 'Loves gardening and baking cookies with you on weekends.')
                     ]
                     cursor.executemany("INSERT INTO familiar_people (id, patient_id, caregiver_id, name, relationship, photo_path, description) VALUES (%s, %s, %s, %s, %s, %s, %s)", fam_people)
 
@@ -430,10 +430,10 @@ def init_db():
                     cursor.executemany("INSERT INTO reminders (id, patient_id, caregiver_id, title, description, reminder_date, reminder_time, repeat_option, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", reminders)
 
                     mem_items = [
-                        (1, 2, 'Anitha Miller', 'Family', 'Daughter — Calls every evening at 6:00 PM. Lives in Chicago.'),
-                        (2, 2, 'David Miller', 'Family', 'Son — Visits every Sunday morning. Loves playing chess with you.'),
+                        (1, 2, 'Anitha Patel', 'Family', 'Daughter — Calls every evening at 6:00 PM. Lives in Bengaluru.'),
+                        (2, 2, 'Rahul Patel', 'Family', 'Son — Visits every Sunday morning. Loves playing chess with you.'),
                         (3, 2, 'Evening Herbal Tea', 'Routine', 'Enjoy a warm chamomile tea at 7:30 PM before bed.'),
-                        (4, 2, 'Home Address', 'Place', '142 Maplewood Drive, Apartment 4B.')
+                        (4, 2, 'Home Address', 'Place', 'Flat 402, Shanti Niketan Apartments, Bengaluru.')
                     ]
                     cursor.executemany("INSERT INTO memory_items (id, patient_id, title, category, description) VALUES (%s, %s, %s, %s, %s)", mem_items)
 

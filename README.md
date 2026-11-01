@@ -50,8 +50,8 @@ You can test the application immediately using these pre-seeded demo accounts:
 
 | User Type | Email | Password | Role / Account Details |
 | :--- | :--- | :--- | :--- |
-| **Patient** | `patient@mindcare.ai` | `password123` | Robert Miller (Age 74) |
-| **Caregiver** | `caregiver@mindcare.ai` | `password123` | Dr. Sarah Jenkins |
+| **Patient** | `patient@mindcare.ai` | `password123` | Ramesh Patel (Age 74) |
+| **Caregiver** | `caregiver@mindcare.ai` | `password123` | Dr. Priya Sharma |
 
 *(You can also use the one-click demo login buttons on the Login page).*
 
