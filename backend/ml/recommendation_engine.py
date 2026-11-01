@@ -7,6 +7,14 @@ and Random Forest ML classifications for each patient based on their actual sess
 from database import execute_query
 from ml.predict import predict_performance, map_difficulty_to_numeric, map_numeric_to_difficulty
 
+_CACHED_ACTIVITIES = None
+
+def get_all_activities():
+    global _CACHED_ACTIVITIES
+    if _CACHED_ACTIVITIES is None:
+        _CACHED_ACTIVITIES = execute_query('SELECT * FROM activities ORDER BY id ASC', fetchall=True) or []
+    return _CACHED_ACTIVITIES
+
 def get_patient_performance_profile(patient_id):
     """
     Calculates comprehensive per-patient and per-activity performance metrics.
@@ -14,8 +22,8 @@ def get_patient_performance_profile(patient_id):
       dict with patient_id, stage, total_sessions, overall_accuracy, overall_score,
       recent_trend, strengths, needs_practice, and per-activity performance details.
     """
-    # 1. Fetch all standard activities
-    activities = execute_query('SELECT * FROM activities ORDER BY id ASC', fetchall=True) or []
+    # 1. Fetch all standard activities (cached in memory)
+    activities = get_all_activities()
     
     # 2. Fetch all completed sessions for this patient ordered by created_at DESC
     query = '''

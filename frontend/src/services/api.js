@@ -33,6 +33,76 @@ const api = axios.create({
   timeout: 60000
 });
 
+// Lightweight in-memory cache for ultra-fast tab switches and instant clicks
+const responseCache = new Map();
+const CACHE_TTL_MS = 25000; // 25 seconds of instant cache
+
+export const clearApiCache = (filterPattern) => {
+  if (!filterPattern) {
+    responseCache.clear();
+    return;
+  }
+  for (const key of responseCache.keys()) {
+    if (key.includes(filterPattern)) {
+      responseCache.delete(key);
+    }
+  }
+};
+
+// 1. Interceptor to return cached GET requests immediately (0ms instant response)
+api.interceptors.request.use((config) => {
+  const method = (config.method || 'get').toLowerCase();
+  if (method === 'get' && !config.params?._fresh) {
+    const key = `${config.url}_${JSON.stringify(config.params || {})}`;
+    const cached = responseCache.get(key);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+      config.adapter = () => Promise.resolve({
+        data: JSON.parse(JSON.stringify(cached.data)),
+        status: 200,
+        statusText: 'OK (Cached)',
+        headers: cached.headers || {},
+        config,
+        request: {}
+      });
+    }
+  }
+  return config;
+});
+
+// 2. Interceptor to save successful GET results & invalidate cache on mutations
+api.interceptors.response.use(
+  (response) => {
+    const method = (response.config.method || 'get').toLowerCase();
+    if (method === 'get' && !response.config.params?._fresh && response.status === 200) {
+      const key = `${response.config.url}_${JSON.stringify(response.config.params || {})}`;
+      responseCache.set(key, {
+        data: response.data,
+        headers: response.headers,
+        timestamp: Date.now()
+      });
+    }
+
+    // Invalidate related cache entries when mutations happen
+    if (['post', 'put', 'delete', 'patch'].includes(method)) {
+      const url = response.config.url || '';
+      if (url.includes('/reminders')) clearApiCache('/reminders');
+      if (url.includes('/familiar-people')) clearApiCache('/familiar-people');
+      if (url.includes('/memory')) clearApiCache('/memory');
+      if (url.includes('/caregiver-requests')) clearApiCache('/caregiver-requests');
+      if (url.includes('/sessions')) {
+        clearApiCache('/sessions');
+        clearApiCache('/recommendations');
+        clearApiCache('/performance-profile');
+      }
+      if (url.includes('/assistance')) clearApiCache('/assistance');
+      if (url.includes('/auth')) clearApiCache();
+    }
+
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
+
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),

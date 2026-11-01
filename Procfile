@@ -1,2 +1,2 @@
-web: gunicorn --chdir backend "app:create_app()"
+web: gunicorn --chdir backend --workers 2 --threads 4 --timeout 120 "app:create_app()"
 

@@ -1,10 +1,125 @@
 import os
 import sqlite3
+import queue
+import threading
+import time
 from werkzeug.security import generate_password_hash
 from config import Config
 
 # Global indicator for active DB engine
 USE_SQLITE_FALLBACK = False
+
+class MySQLConnectionPool:
+    """
+    High-performance thread-safe connection pool for cloud MySQL (TiDB Cloud).
+    Reuses persistent SSL connections to eliminate 1.8s+ handshake overhead on every query.
+    """
+    def __init__(self, max_connections=10):
+        self.max_connections = max_connections
+        self.pool = queue.Queue(maxsize=max_connections)
+        self.lock = threading.Lock()
+        self.created_count = 0
+
+    def _create_connection(self):
+        import pymysql
+        ssl_opts = None
+        if getattr(Config, 'DB_SSL', False) or any(h in (Config.DB_HOST or '').lower() for h in ['tidb', 'aiven', 'planetscale', 'rds.amazonaws.com', 'clever-cloud']):
+            import ssl
+            ssl_opts = ssl.create_default_context()
+
+        conn_kwargs = {
+            'host': Config.DB_HOST,
+            'port': Config.DB_PORT,
+            'user': Config.DB_USER,
+            'password': Config.DB_PASSWORD,
+            'database': Config.DB_NAME,
+            'cursorclass': pymysql.cursors.DictCursor,
+            'autocommit': True,
+            'connect_timeout': 10 if (Config.DB_HOST not in ['localhost', '127.0.0.1']) else 2
+        }
+        if ssl_opts is not None:
+            conn_kwargs['ssl'] = ssl_opts
+
+        return pymysql.connect(**conn_kwargs)
+
+    def get_connection(self):
+        # 1. Grab an idle connection from the pool if available
+        while not self.pool.empty():
+            try:
+                conn, last_used = self.pool.get_nowait()
+                now = time.time()
+                # If used within 45s, reuse without ping for instant 0ms latency
+                if now - last_used < 45:
+                    return conn
+                # If idle for >45s, verify it is still alive
+                try:
+                    conn.ping()
+                    return conn
+                except Exception:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+                    with self.lock:
+                        self.created_count = max(0, self.created_count - 1)
+            except queue.Empty:
+                break
+
+        # 2. If under limit, create a new connection
+        with self.lock:
+            if self.created_count < self.max_connections:
+                self.created_count += 1
+                try:
+                    return self._create_connection()
+                except Exception as e:
+                    self.created_count -= 1
+                    raise e
+
+        # 3. Wait up to 3s for an existing connection to be released back
+        try:
+            conn, _ = self.pool.get(timeout=3)
+            return conn
+        except queue.Empty:
+            return self._create_connection()
+
+    def release_connection(self, conn, is_healthy=True):
+        if conn is None:
+            return
+        if not is_healthy:
+            try:
+                conn.close()
+            except Exception:
+                pass
+            with self.lock:
+                self.created_count = max(0, self.created_count - 1)
+            return
+
+        try:
+            self.pool.put_nowait((conn, time.time()))
+        except queue.Full:
+            try:
+                conn.close()
+            except Exception:
+                pass
+            with self.lock:
+                self.created_count = max(0, self.created_count - 1)
+
+    def warm_up(self, count=2):
+        """Pre-warms connections in the background so the very first queries respond instantly."""
+        def _warm():
+            for _ in range(count):
+                try:
+                    conn = self._create_connection()
+                    with self.lock:
+                        self.created_count += 1
+                    self.release_connection(conn, is_healthy=True)
+                except Exception as e:
+                    print(f"[Pool Warm-up] Warning: {e}")
+                    break
+        t = threading.Thread(target=_warm, daemon=True)
+        t.start()
+
+mysql_pool = MySQLConnectionPool(max_connections=10)
 
 def get_db_connection():
     """
@@ -453,23 +568,23 @@ def init_db():
 
             conn.close()
             print("[Database] Connected to MySQL database and verified schema tables.")
+            mysql_pool.warm_up(count=2)
         except Exception as e:
             print(f"[Database Error] Failed to initialize MySQL schema: {e}")
 
 def execute_query(query, params=(), fetchone=False, fetchall=False, commit=False):
     """
     Unified helper to execute SQL queries across MySQL or SQLite.
-    Returns standard Python dictionaries for rows.
+    Reuses pooled MySQL connections with auto-recovery for maximum responsiveness.
     """
-    conn = get_db_connection()
-    result = None
-    try:
-        if USE_SQLITE_FALLBACK:
-            # Convert MySQL %s placeholder to SQLite ? placeholder if needed
+    global USE_SQLITE_FALLBACK
+    if USE_SQLITE_FALLBACK:
+        conn = sqlite3.connect(Config.SQLITE_DB_PATH)
+        conn.row_factory = sqlite3.Row
+        try:
             query_sqlite = query.replace('%s', '?')
             cursor = conn.cursor()
             cursor.execute(query_sqlite, params)
-            
             if commit:
                 conn.commit()
                 result = cursor.lastrowid
@@ -479,21 +594,63 @@ def execute_query(query, params=(), fetchone=False, fetchall=False, commit=False
             elif fetchall:
                 rows = cursor.fetchall()
                 result = [dict(row) for row in rows]
+            return result
+        finally:
             conn.close()
-        else:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                if commit:
-                    conn.commit()
-                    result = cursor.lastrowid
-                elif fetchone:
-                    result = cursor.fetchone()
-                elif fetchall:
-                    result = cursor.fetchall()
-            conn.close()
+
+    # MySQL Pooled Connection Execution
+    conn = None
+    is_healthy = True
+    try:
+        try:
+            conn = mysql_pool.get_connection()
+        except Exception as conn_err:
+            print(f"[Database Pool Info] MySQL connection failed ({conn_err}). Switching to SQLite fallback.")
+            USE_SQLITE_FALLBACK = True
+            return execute_query(query, params, fetchone=fetchone, fetchall=fetchall, commit=commit)
+
+        with conn.cursor() as cursor:
+            cursor.execute(query, params)
+            if commit:
+                conn.commit()
+                result = cursor.lastrowid
+            elif fetchone:
+                result = cursor.fetchone()
+            elif fetchall:
+                result = cursor.fetchall()
+        return result
     except Exception as e:
-        print(f"[Query Error] Query failed: {query} Error: {e}")
-        if conn:
-            conn.close()
-        raise e
-    return result
+        err_msg = str(e).lower()
+        if any(term in err_msg for term in ['lost connection', 'gone away', 'broken pipe', 'interfaceerror', 'operationalerror', 'timed out']):
+            is_healthy = False
+            try:
+                if conn:
+                    conn.close()
+            except Exception:
+                pass
+            conn = None
+            # Retry once with a freshly established connection
+            try:
+                conn = mysql_pool._create_connection()
+                with conn.cursor() as cursor:
+                    cursor.execute(query, params)
+                    if commit:
+                        conn.commit()
+                        result = cursor.lastrowid
+                    elif fetchone:
+                        result = cursor.fetchone()
+                    elif fetchall:
+                        result = cursor.fetchall()
+                is_healthy = True
+                return result
+            except Exception as retry_err:
+                is_healthy = False
+                print(f"[Query Retry Error] Query: {query} Error: {retry_err}")
+                raise retry_err
+        else:
+            is_healthy = False
+            print(f"[Query Error] Query: {query} Error: {e}")
+            raise e
+    finally:
+        if conn is not None:
+            mysql_pool.release_connection(conn, is_healthy=is_healthy)
