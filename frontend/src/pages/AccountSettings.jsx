@@ -4,11 +4,13 @@ import { useLanguage } from '../context/LanguageContext';
 import { useVoice } from '../context/VoiceContext';
 import LanguageSelector from '../components/LanguageSelector';
 import { authAPI, caregiverRequestsAPI } from '../services/api';
+import { useCaregiverPatient } from '../context/CaregiverPatientContext';
 
 const AccountSettings = () => {
   const { user, login } = useAuth();
   const { t } = useLanguage();
   const { activeIndicVoice, preferredGender, setPreferredGender, testIndicVoice, isPlayingTest } = useVoice();
+  const { patients, selectedPatientId, setSelectedPatientId } = useCaregiverPatient();
 
   const [name, setName] = useState(user?.name || '');
   const [age, setAge] = useState(user?.age || '');
@@ -174,11 +176,29 @@ const AccountSettings = () => {
                 <strong className="text-dark fs-6">{user?.email}</strong>
               </div>
               {isCaregiver && user?.caregiver_code && (
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex justify-content-between align-items-center mb-2">
                   <span className="text-secondary fs-6">Caregiver ID Code:</span>
                   <span className="badge bg-warning text-dark border border-warning fs-6">
                     {user.caregiver_code}
                   </span>
+                </div>
+              )}
+              {isCaregiver && (
+                <div className="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-rose">
+                  <span className="text-secondary fs-6">Active Selected Patient:</span>
+                  {patients.length > 0 ? (
+                    <select
+                      className="form-select form-select-sm w-auto rounded-3 fw-bold text-dark border-rose shadow-sm"
+                      value={selectedPatientId || ''}
+                      onChange={(e) => setSelectedPatientId(Number(e.target.value))}
+                    >
+                      {patients.map(p => (
+                        <option key={p.id} value={p.id}>👤 {p.name} (Age {p.age || 'N/A'})</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-muted fs-6">No connected patients</span>
+                  )}
                 </div>
               )}
               {!isCaregiver && (
