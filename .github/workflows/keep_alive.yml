@@ -1,0 +1,15 @@
+name: Keep Render Service Awake
+
+on:
+  schedule:
+    # Run every 10 minutes to prevent Render free instance from idling into sleep mode
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping MindCare AI Health Endpoint
+        run: |
+          curl -s -f https://mindcare-ai-mks2.onrender.com/api/health || true
