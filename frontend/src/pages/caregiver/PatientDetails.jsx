@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useCaregiverPatient } from '../../context/CaregiverPatientContext';
 import { sessionsAPI, recommendationsAPI, memoryAPI } from '../../services/api';
 
 const PatientDetails = () => {
   const { id } = useParams();
   const patientId = id;
+  const { setSelectedPatientId, selectedPatient } = useCaregiverPatient();
   const [sessions, setSessions] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [profile, setProfile] = useState(null);
@@ -13,6 +15,7 @@ const PatientDetails = () => {
 
   useEffect(() => {
     if (patientId) {
+      setSelectedPatientId(Number(patientId));
       fetchData();
     }
   }, [patientId]);

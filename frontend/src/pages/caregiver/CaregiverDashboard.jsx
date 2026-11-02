@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useCaregiverPatient } from '../../context/CaregiverPatientContext';
 import { sessionsAPI, recommendationsAPI, caregiverRequestsAPI, assistanceAPI } from '../../services/api';
 import { Link } from 'react-router-dom';
 import {
@@ -31,8 +32,13 @@ const CaregiverDashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [patients, setPatients] = useState([]);
-  const [selectedPatientId, setSelectedPatientId] = useState(null);
+  const { 
+    patients, 
+    selectedPatientId, 
+    selectedPatient, 
+    setSelectedPatientId, 
+    refreshPatients 
+  } = useCaregiverPatient();
   const [requests, setRequests] = useState([]);
   const [helpRequests, setHelpRequests] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -59,21 +65,13 @@ const CaregiverDashboard = () => {
 
   const fetchCaregiverOverview = async () => {
     try {
-      const [patsRes, reqsRes, helpRes] = await Promise.all([
-        caregiverRequestsAPI.getAcceptedPatients(user.id),
+      const [reqsRes, helpRes] = await Promise.all([
         caregiverRequestsAPI.getByCaregiverId(user.id),
         assistanceAPI.getByCaregiverId(user.id)
       ]);
-      const acceptedPats = patsRes.data || [];
-      setPatients(acceptedPats);
       setRequests(reqsRes.data || []);
       setHelpRequests(helpRes.data || []);
-
-      if (acceptedPats.length > 0) {
-        setSelectedPatientId(acceptedPats[0].id);
-      } else {
-        setSelectedPatientId(null);
-      }
+      refreshPatients();
     } catch (err) {
       console.error("Caregiver overview error:", err);
     } finally {
@@ -128,7 +126,6 @@ const CaregiverDashboard = () => {
 
   const latestRec = recommendations.length > 0 ? recommendations[0] : null;
   const pendingRequests = requests.filter(r => r.status === 'pending');
-  const selectedPatient = patients.find(p => p.id === selectedPatientId) || null;
 
   // Chart Data Preparation
   const recentSessions = [...sessions].reverse();

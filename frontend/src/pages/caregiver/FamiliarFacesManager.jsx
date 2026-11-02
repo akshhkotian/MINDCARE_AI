@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { caregiverRequestsAPI, familiarPeopleAPI } from '../../services/api';
+import { useCaregiverPatient } from '../../context/CaregiverPatientContext';
+import { familiarPeopleAPI } from '../../services/api';
 
 const FamiliarFacesManager = () => {
   const { user } = useAuth();
-  const [patients, setPatients] = useState([]);
-  const [selectedPatientId, setSelectedPatientId] = useState('');
+  const { 
+    patients, 
+    selectedPatientId, 
+    selectedPatient, 
+    setSelectedPatientId 
+  } = useCaregiverPatient();
   const [people, setPeople] = useState([]);
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [description, setDescription] = useState('');
   const [statusMsg, setStatusMsg] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const sampleAvatars = [
     'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400',
@@ -23,40 +28,22 @@ const FamiliarFacesManager = () => {
   ];
 
   useEffect(() => {
-    if (user && user.role === 'caregiver') {
-      fetchPatients();
-    }
-  }, [user]);
-
-  useEffect(() => {
     if (selectedPatientId) {
       fetchFamiliarPeople(selectedPatientId);
+    } else {
+      setPeople([]);
     }
   }, [selectedPatientId]);
 
-  const fetchPatients = async () => {
-    try {
-      const res = await caregiverRequestsAPI.getAcceptedPatients(user.id);
-      const list = res.data || [];
-      setPatients(list);
-      if (list.length > 0) {
-        setSelectedPatientId(list[0].id);
-      } else {
-        setSelectedPatientId('');
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchFamiliarPeople = async (patientId) => {
+    setLoading(true);
     try {
       const res = await familiarPeopleAPI.getByPatientId(patientId);
       setPeople(res.data || []);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -168,7 +155,7 @@ const FamiliarFacesManager = () => {
                 <label className="form-label fw-bold fs-6 text-dark">Target Patient</label>
                 <select 
                   className="form-select form-select-lg fs-6 rounded-3 border-rose"
-                  value={selectedPatientId}
+                  value={selectedPatientId || ''}
                   onChange={(e) => setSelectedPatientId(parseInt(e.target.value, 10))}
                   required
                 >

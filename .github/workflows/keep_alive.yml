@@ -13,3 +13,4 @@ jobs:
       - name: Ping MindCare AI Health Endpoint
         run: |
           curl -s -f https://mindcare-ai-mks2.onrender.com/api/health || true
+

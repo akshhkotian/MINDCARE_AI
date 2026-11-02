@@ -3,12 +3,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useCaregiverPatient } from '../context/CaregiverPatientContext';
 import LanguageSelector from './LanguageSelector';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { t } = useLanguage();
+  const { patients, selectedPatientId, setSelectedPatientId } = useCaregiverPatient();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -105,6 +107,25 @@ const Navbar = () => {
 
                   {/* Right Actions */}
                   <div className="d-flex align-items-center gap-2 flex-nowrap ms-auto flex-shrink-0">
+                    {isCaregiver && patients.length > 0 && (
+                      <div className="d-flex align-items-center gap-1 bg-white border border-rose rounded-pill px-2 py-1 shadow-sm flex-shrink-0" title="Active Patient (Synchronized across all Caregiver pages)">
+                        <i className="bi bi-person-heart text-rose fs-6 ms-1"></i>
+                        <span className="text-secondary fw-bold fs-7 d-none d-xl-inline">Patient:</span>
+                        <select
+                          className="form-select form-select-sm border-0 bg-transparent fw-bold text-dark py-0 ps-1 pe-4 fs-6 cursor-pointer"
+                          style={{ width: 'auto', minWidth: '130px', maxWidth: '175px', boxShadow: 'none' }}
+                          value={selectedPatientId || ''}
+                          onChange={(e) => setSelectedPatientId(Number(e.target.value))}
+                          aria-label="Active Patient Selection"
+                        >
+                          {patients.map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} {p.age ? `(${p.age}y)` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <Link to={isPatient ? "/patient/account" : "/caregiver/account"} className="badge badge-bubble-rose px-3 py-2 fs-6 text-decoration-none cursor-pointer flex-shrink-0" title="Manage Account">
                       <i className="bi bi-person-circle me-1"></i> {user.name}
                     </Link>

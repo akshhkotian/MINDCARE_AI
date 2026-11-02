@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { remindersAPI, caregiverRequestsAPI } from '../../services/api';
+import { useCaregiverPatient } from '../../context/CaregiverPatientContext';
+import { remindersAPI } from '../../services/api';
 
 const CaregiverReminders = () => {
   const { user } = useAuth();
-  const [patients, setPatients] = useState([]);
-  const [selectedPatientId, setSelectedPatientId] = useState(2); // Default to demo patient 2
+  const { 
+    patients, 
+    selectedPatientId, 
+    selectedPatient, 
+    setSelectedPatientId 
+  } = useCaregiverPatient();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,27 +31,13 @@ const CaregiverReminders = () => {
   const [editStatus, setEditStatus] = useState('Pending');
 
   useEffect(() => {
-    fetchPatients();
-  }, []);
-
-  useEffect(() => {
     if (selectedPatientId) {
       fetchReminders();
+    } else {
+      setReminders([]);
+      setLoading(false);
     }
   }, [selectedPatientId]);
-
-  const fetchPatients = async () => {
-    try {
-      const res = await caregiverRequestsAPI.getAcceptedPatients(user.id);
-      const list = res.data || [];
-      setPatients(list);
-      if (list.length > 0) {
-        setSelectedPatientId(list[0].patient_id || list[0].id || 2);
-      }
-    } catch (err) {
-      console.error("Error fetching patients:", err);
-    }
-  };
 
   const fetchReminders = async () => {
     setLoading(true);
@@ -166,12 +157,12 @@ const CaregiverReminders = () => {
               <label className="form-label fw-bold mb-1 fs-6 text-dark">Select Patient:</label>
               <select
                 className="form-select rounded-3 fw-bold text-primary"
-                value={selectedPatientId}
+                value={selectedPatientId || ''}
                 onChange={(e) => setSelectedPatientId(Number(e.target.value))}
               >
                 {patients.map((p) => (
-                  <option key={p.patient_id || p.id} value={p.patient_id || p.id}>
-                    👤 {p.patient_name || p.name || `Patient #${p.patient_id || p.id}`}
+                  <option key={p.id} value={p.id}>
+                    👤 {p.name} (#{p.id})
                   </option>
                 ))}
               </select>

@@ -322,6 +322,21 @@ export const VoiceProvider = ({ children }) => {
     }
   }, [voiceLangCode]);
 
+  const stopSpeaking = useCallback(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {}
+      setIsListening(false);
+    }
+    setIsPlayingTest(false);
+  }, []);
+
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       try {
@@ -343,6 +358,7 @@ export const VoiceProvider = ({ children }) => {
       speechEnabled,
       toggleSpeech,
       speakInstruction,
+      stopSpeaking,
       startListening,
       stopListening,
       isListening,

@@ -1,10 +1,11 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { VoiceProvider } from './context/VoiceContext';
+import { VoiceProvider, useVoice } from './context/VoiceContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { CaregiverPatientProvider } from './context/CaregiverPatientContext';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -53,14 +54,28 @@ const RootRedirect = () => {
   return user.role === 'patient' ? <Navigate to="/patient/dashboard" replace /> : <Navigate to="/caregiver/dashboard" replace />;
 };
 
+const RouteSpeechStopper = () => {
+  const location = useLocation();
+  const { stopSpeaking } = useVoice();
+
+  useEffect(() => {
+    // Immediately stop any text-to-speech audio and voice recognition when user changes the page
+    stopSpeaking();
+  }, [location.pathname, stopSpeaking]);
+
+  return null;
+};
+
 function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
-          <VoiceProvider>
-          <Router>
-            <div className="d-flex flex-column min-vh-100 app-container">
+          <CaregiverPatientProvider>
+            <VoiceProvider>
+              <Router>
+                <RouteSpeechStopper />
+                <div className="d-flex flex-column min-vh-100 app-container">
               <Navbar />
               <div className="flex-grow-1">
                 <Routes>
@@ -151,6 +166,7 @@ function App() {
             </div>
           </Router>
         </VoiceProvider>
+        </CaregiverPatientProvider>
       </AuthProvider>
     </LanguageProvider>
   </ThemeProvider>

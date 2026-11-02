@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { memoryAPI, caregiverRequestsAPI } from '../../services/api';
+import { useCaregiverPatient } from '../../context/CaregiverPatientContext';
+import { memoryAPI } from '../../services/api';
 
 const PRESETS = [
   {
     title: 'Home Address & Location',
     category: 'Place',
-    description: '142 Maplewood Drive, Apartment 4B. Emergency landmark: Green Park across the street.'
+    description: 'Bengaluru, Karnataka. Emergency landmark: Near Metro Station.'
   },
   {
     title: 'Emergency Contact',
     category: 'Family',
-    description: 'Primary Contact: Anitha (Daughter) - (555) 019-2831. Lives 10 minutes away.'
+    description: 'Primary Contact: Anitha (Wife) / Rahul (Son) - +91 98765 43210. Lives 10 minutes away.'
   },
   {
     title: 'Morning Routine & Medication',
@@ -22,7 +23,7 @@ const PRESETS = [
   {
     title: 'Doctor & Clinic Notes',
     category: 'Note',
-    description: 'Dr. Sarah Jenkins (Neurology Clinic) - Appointment every 2nd Tuesday of the month.'
+    description: 'Dr. Priya Sharma (Neurology Clinic) - Regular consultation every month.'
   }
 ];
 
@@ -30,10 +31,14 @@ const CaregiverMemoryManagement = () => {
   const { user } = useAuth();
   const location = useLocation();
 
-  const [patients, setPatients] = useState([]);
-  const [selectedPatientId, setSelectedPatientId] = useState('');
+  const { 
+    patients, 
+    selectedPatientId, 
+    selectedPatient, 
+    setSelectedPatientId 
+  } = useCaregiverPatient();
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState(null);
 
   // Form & Editing states
@@ -43,10 +48,11 @@ const CaregiverMemoryManagement = () => {
   const [description, setDescription] = useState('');
 
   useEffect(() => {
-    if (user && user.role === 'caregiver') {
-      fetchPatients();
+    const passedPatientId = location.state?.patientId;
+    if (passedPatientId && String(passedPatientId) !== String(selectedPatientId)) {
+      setSelectedPatientId(Number(passedPatientId));
     }
-  }, [user]);
+  }, [location.state?.patientId]);
 
   useEffect(() => {
     if (selectedPatientId) {
@@ -57,23 +63,6 @@ const CaregiverMemoryManagement = () => {
       setLoading(false);
     }
   }, [selectedPatientId]);
-
-  const fetchPatients = async () => {
-    try {
-      const res = await caregiverRequestsAPI.getAcceptedPatients(user.id);
-      const list = res.data || [];
-      setPatients(list);
-
-      const passedPatientId = location.state?.patientId;
-      if (passedPatientId && list.some(p => String(p.id) === String(passedPatientId))) {
-        setSelectedPatientId(String(passedPatientId));
-      } else if (list.length > 0) {
-        setSelectedPatientId(String(list[0].id));
-      }
-    } catch (err) {
-      console.error("Fetch patients error:", err);
-    }
-  };
 
   const fetchMemoryItems = async (patientId) => {
     setLoading(true);
@@ -157,8 +146,6 @@ const CaregiverMemoryManagement = () => {
     setDescription(preset.description);
   };
 
-  const selectedPatient = patients.find(p => String(p.id) === String(selectedPatientId));
-
   const getCategoryBadgeClass = (cat) => {
     switch (cat) {
       case 'Family': return 'bg-danger text-white';
@@ -199,8 +186,8 @@ const CaregiverMemoryManagement = () => {
             ) : (
               <select
                 className="form-select form-select-lg rounded-3 border-rose shadow-sm fw-bold fs-6"
-                value={selectedPatientId}
-                onChange={(e) => setSelectedPatientId(e.target.value)}
+                value={selectedPatientId || ''}
+                onChange={(e) => setSelectedPatientId(Number(e.target.value))}
               >
                 {patients.map((p) => (
                   <option key={p.id} value={p.id}>
