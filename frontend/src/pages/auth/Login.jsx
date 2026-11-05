@@ -59,7 +59,7 @@ const Login = () => {
                 <div className="login-brand-icon">
                   <i className="bi bi-heart-pulse-fill fs-2"></i>
                 </div>
-                <h2 className="fw-bold text-rose mb-1">{t('welcomeTitle', 'Welcome to MindCare AI')}</h2>
+                <h2 className="fw-bold text-rose mb-1">{t('welcomeTitle', 'Welcome')}</h2>
               </div>
 
               {errMessage && (

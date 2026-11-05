@@ -34,7 +34,7 @@ export const translations = {
     selectLanguage: "Select Language",
 
     // Authentication
-    welcomeTitle: "Namaste & Welcome to MindCare AI",
+    welcomeTitle: "Welcome",
     welcomeSubtitle: "Cognitive Care & Memory Assistant • स्मृति देखभाल",
     accountType: "Account Type",
     patient: "Patient",
@@ -179,7 +179,7 @@ export const translations = {
     selectLanguage: "भाषा चुनें",
 
     // Authentication
-    welcomeTitle: "माइंडकेयर एआई में आपका स्वागत है",
+    welcomeTitle: "स्वागत है",
     welcomeSubtitle: "संज्ञानात्मक एवं स्मृति देखभाल सहायक • मेमोरी केयर",
     accountType: "खाता प्रकार",
     patient: "मरीज़",
@@ -324,7 +324,7 @@ export const translations = {
     selectLanguage: "ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ",
 
     // Authentication
-    welcomeTitle: "ಮೈಂಡ್‌ಕೇರ್ ಎಐಗೆ ಸುಸ್ವಾಗತ",
+    welcomeTitle: "ಸುಸ್ವಾಗತ",
     welcomeSubtitle: "ಜ್ಞಾಪಕ ಶಕ್ತಿ ಮತ್ತು ಬುದ್ಧಿಮತ್ತೆ ಆರೈಕೆ ಸಹಾಯಕ • ಮೆಮೊರಿ ಕೇರ್",
     accountType: "ಖಾತೆ ಪ್ರಕಾರ",
     patient: "ರೋಗಿ",
@@ -469,7 +469,7 @@ export const translations = {
     selectLanguage: "மொழியைத் தேர்ந்தெடுக்கவும்",
 
     // Authentication
-    welcomeTitle: "மைண்ட்கேர் AI-க்கு நல்வரவு",
+    welcomeTitle: "நல்வரவு",
     welcomeSubtitle: "நினைவாற்றல் மற்றும் மனநல பராமரிப்பு உதவியாளர்",
     accountType: "கணக்கு வகை",
     patient: "நோயாளி",
@@ -614,7 +614,7 @@ export const translations = {
     selectLanguage: "భాషను ఎంచుకోండి",
 
     // Authentication
-    welcomeTitle: "మైండ్‌కేర్ AIకి స్వాగతం",
+    welcomeTitle: "స్వాగతం",
     welcomeSubtitle: "జ్ఞాపకశక్తి మరియు ఆలోచనా సామర్థ్య సంరక్షణ సహాయకుడు",
     accountType: "ఖాతా రకం",
     patient: "రోగి",
@@ -759,7 +759,7 @@ export const translations = {
     selectLanguage: "ভাষা নির্বাচন করুন",
 
     // Authentication
-    welcomeTitle: "মাইন্ডকেয়ার এআই-তে স্বাগতম",
+    welcomeTitle: "স্বাগতম",
     welcomeSubtitle: "জ্ঞানীয় এবং স্মৃতি যত্ন সহায়ক • মেমোরি কেয়ার",
     accountType: "অ্যাকাউন্টের ধরন",
     patient: "রোগী",
@@ -904,7 +904,7 @@ export const translations = {
     selectLanguage: "भाषा निवडा",
 
     // Authentication
-    welcomeTitle: "माइंडकेअर एआय मध्ये आपले स्वागत आहे",
+    welcomeTitle: "स्वागत आहे",
     welcomeSubtitle: "संज्ञानात्मक आणि स्मृती काळजी सहाय्यक • मेमरी केअर",
     accountType: "खात्याचा प्रकार",
     patient: "रुग्ण",
@@ -1049,7 +1049,7 @@ export const translations = {
     selectLanguage: "ભાષા પસંદ કરો",
 
     // Authentication
-    welcomeTitle: "માઇન્ડકેર AI માં આપનું સ્વાગત છે",
+    welcomeTitle: "સ્વાગત છે",
     welcomeSubtitle: "યાદશક્તિ અને માનસિક સ્વાસ્થ્ય સહાયક • મેમરી કેર",
     accountType: "ખાતાનો પ્રકાર",
     patient: "દર્દી",
@@ -1194,7 +1194,7 @@ export const translations = {
     selectLanguage: "ഭാഷ തിരഞ്ഞെടുക്കുക",
 
     // Authentication
-    welcomeTitle: "മൈൻഡ്കെയർ AI-ലേക്ക് സ്വാഗതം",
+    welcomeTitle: "സ്വാഗതം",
     welcomeSubtitle: "ഓർമ്മശക്തിയും മാനസികാരോഗ്യ പരിചരണ സഹായി • മെമ്മറി കെയർ",
     accountType: "അക്കൗണ്ട് തരം",
     patient: "രോഗി",
