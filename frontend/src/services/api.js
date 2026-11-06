@@ -30,7 +30,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000
+  timeout: 120000
 });
 
 // Lightweight in-memory cache for ultra-fast tab switches and instant clicks
@@ -100,7 +100,21 @@ api.interceptors.response.use(
 
     return response;
   },
-  (error) => Promise.reject(error)
+  async (error) => {
+    const originalRequest = error.config;
+    // Auto-retry once on cold-start timeout or temporary network blip
+    if (
+      originalRequest &&
+      !originalRequest._retry &&
+      (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || !error.response)
+    ) {
+      originalRequest._retry = true;
+      // Wait 2.5 seconds before retrying (gives cloud server time to finish spinning up)
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      return api(originalRequest);
+    }
+    return Promise.reject(error);
+  }
 );
 
 export const authAPI = {

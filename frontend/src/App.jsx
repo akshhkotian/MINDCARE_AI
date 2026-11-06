@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { CaregiverPatientProvider } from './context/CaregiverPatientContext';
 
+import api from './services/api';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -66,6 +67,14 @@ const RouteSpeechStopper = () => {
   return null;
 };
 
+const BackendWarmer = () => {
+  useEffect(() => {
+    // Non-blocking pre-warm ping to wake up cloud backend and DB pool upon visit
+    api.get('/health').catch(() => {});
+  }, []);
+  return null;
+};
+
 function App() {
   return (
     <ThemeProvider>
@@ -74,6 +83,7 @@ function App() {
           <CaregiverPatientProvider>
             <VoiceProvider>
               <Router>
+                <BackendWarmer />
                 <RouteSpeechStopper />
                 <div className="d-flex flex-column min-vh-100 app-container">
               <Navbar />

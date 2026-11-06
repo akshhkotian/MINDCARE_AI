@@ -34,9 +34,9 @@ export const AuthProvider = ({ children }) => {
       if (err.response && err.response.data && err.response.data.error) {
         errMsg = err.response.data.error;
       } else if (err.code === 'ECONNABORTED') {
-        errMsg = 'Server took too long to respond. Please try again.';
+        errMsg = 'The cloud server took a moment to wake up from idle sleep. Please click Sign In again!';
       } else if (err.code === 'ERR_NETWORK' || !err.response) {
-        errMsg = 'Connecting to server... Please check your internet connection and try again.';
+        errMsg = 'Connecting to cloud server... Server is waking up, please click Sign In once more.';
       } else {
         errMsg = err.message || 'Login failed. Please check credentials.';
       }
@@ -55,9 +55,9 @@ export const AuthProvider = ({ children }) => {
       if (err.response && err.response.data && err.response.data.error) {
         errMsg = err.response.data.error;
       } else if (err.code === 'ECONNABORTED') {
-        errMsg = 'Server took too long to respond. Please try again.';
+        errMsg = 'The cloud server took a moment to wake up from idle sleep. Please click Register again!';
       } else if (err.code === 'ERR_NETWORK' || !err.response) {
-        errMsg = 'Connecting to server... Please check your internet connection and try again.';
+        errMsg = 'Connecting to cloud server... Server is waking up, please click Register once more.';
       } else {
         errMsg = err.message || 'Registration failed.';
       }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -9,6 +9,17 @@ const Login = () => {
   const [role, setRole] = useState('patient');
   const [errMessage, setErrMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowLoading, setSlowLoading] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => setSlowLoading(true), 3500);
+    } else {
+      setSlowLoading(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -129,8 +140,19 @@ const Login = () => {
                   disabled={loading}
                   className="btn patient-btn-primary btn-lg w-100 py-3 fw-bold fs-4 rounded-3 shadow-sm"
                 >
-                  {loading ? t('signingIn', 'Signing In...') : t('signIn', 'Sign In')}
+                  {loading ? (
+                    <span>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      {slowLoading ? 'Connecting to Cloud Server...' : t('signingIn', 'Signing In...')}
+                    </span>
+                  ) : t('signIn', 'Sign In')}
                 </button>
+                {slowLoading && (
+                  <div className="text-secondary small mt-2 text-center">
+                    <i className="bi bi-cloud-arrow-up me-1 text-primary"></i> 
+                    Waking up cloud server from idle sleep... please hold on a few seconds.
+                  </div>
+                )}
               </form>
 
               <div className="mt-4 pt-3 border-top text-center">
