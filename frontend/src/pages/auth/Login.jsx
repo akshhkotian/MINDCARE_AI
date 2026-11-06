@@ -47,18 +47,6 @@ const Login = () => {
     }
   };
 
-  const fillDemoPatient = () => {
-    setEmail('patient@mindcare.ai');
-    setPassword('password123');
-    setRole('patient');
-  };
-
-  const fillDemoCaregiver = () => {
-    setEmail('caregiver@mindcare.ai');
-    setPassword('password123');
-    setRole('caregiver');
-  };
-
   return (
     <div className="login-page-bg py-5">
       <div className="container">
@@ -154,18 +142,6 @@ const Login = () => {
                   </div>
                 )}
               </form>
-
-              <div className="mt-4 pt-3 border-top text-center">
-                <p className="text-secondary mb-2 fs-6">{t('quickDemo', 'Quick Demo One-Click Login Credentials:')}</p>
-                <div className="d-flex justify-content-center gap-2">
-                  <button type="button" onClick={fillDemoPatient} className="btn btn-sm patient-btn-success rounded-pill fw-bold fs-6">
-                    {t('demoPatient', 'Demo Patient')}
-                  </button>
-                  <button type="button" onClick={fillDemoCaregiver} className="btn btn-sm patient-btn-primary rounded-pill fw-bold fs-6">
-                    {t('demoCaregiver', 'Demo Caregiver')}
-                  </button>
-                </div>
-              </div>
 
               <div className="mt-4 text-center fs-5">
                 {t('dontHaveAccount', "Don't have an account?")} <Link to="/register" className="fw-bold text-rose">{t('registerHere', 'Register Here')}</Link>
