@@ -179,7 +179,7 @@ const CaregiverReminders = () => {
           </h4>
         </div>
         <div className="row g-3">
-          <div className="col-md-3">
+          <div className="col-12 col-sm-6 col-lg-3">
             <button
               onClick={() => handleAddPreset({
                 title: 'Daily Hydration',
@@ -194,7 +194,7 @@ const CaregiverReminders = () => {
             </button>
           </div>
 
-          <div className="col-md-3">
+          <div className="col-12 col-sm-6 col-lg-3">
             <button
               onClick={() => handleAddPreset({
                 title: 'Daily Cognitive Activity',
@@ -209,7 +209,7 @@ const CaregiverReminders = () => {
             </button>
           </div>
 
-          <div className="col-md-3">
+          <div className="col-12 col-sm-6 col-lg-3">
             <button
               onClick={() => handleAddPreset({
                 title: 'Morning Medication',
@@ -224,7 +224,7 @@ const CaregiverReminders = () => {
             </button>
           </div>
 
-          <div className="col-md-3">
+          <div className="col-12 col-sm-6 col-lg-3">
             <button
               onClick={() => handleAddPreset({
                 title: 'Afternoon Walk',

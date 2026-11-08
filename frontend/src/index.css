@@ -966,3 +966,207 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0.85rem;
   border: 2px solid rgba(255, 255, 255, 0.6);
 }
+
+/* ==================================================== */
+/* COMPREHENSIVE RESPONSIVE DESIGN ACROSS ALL DEVICES   */
+/* (Mobile, Phablet, Tablet, Laptop, Desktop)           */
+/* ==================================================== */
+
+/* Prevent horizontal overflow globally */
+html, body, #root, .app-container {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Smooth horizontal scrolling for all data tables */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+}
+
+/* iOS Safari zoom prevention on form inputs */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* ---------------------------------------------------- */
+/* TABLETS & BELOW (<= 991.98px)                        */
+/* ---------------------------------------------------- */
+@media (max-width: 991.98px) {
+  .border-end {
+    border-right: none !important;
+    border-bottom: 1px solid var(--soft-border) !important;
+    padding-bottom: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+}
+
+/* ---------------------------------------------------- */
+/* MOBILE DEVICES & COMPACT SCREENS (<= 575.98px)       */
+/* ---------------------------------------------------- */
+@media (max-width: 575.98px) {
+  /* Fluid Typography for Mobile */
+  h1, .h1 {
+    font-size: 1.6rem !important;
+    line-height: 1.25 !important;
+  }
+  h2, .h2 {
+    font-size: 1.35rem !important;
+    line-height: 1.3 !important;
+  }
+  h3, .h3 {
+    font-size: 1.2rem !important;
+  }
+  h4, .h4 {
+    font-size: 1.05rem !important;
+  }
+  .display-3 {
+    font-size: 2.4rem !important;
+  }
+  .display-4 {
+    font-size: 2rem !important;
+  }
+  .fs-1 {
+    font-size: 1.5rem !important;
+  }
+  .fs-2 {
+    font-size: 1.3rem !important;
+  }
+  .fs-3 {
+    font-size: 1.15rem !important;
+  }
+  .fs-4 {
+    font-size: 1.05rem !important;
+  }
+  .fs-5 {
+    font-size: 0.95rem !important;
+  }
+  .fs-6 {
+    font-size: 0.85rem !important;
+  }
+
+  /* Compact Container & Card Padding on Mobile */
+  .container, .container-fluid {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .card, .patient-card, .login-glass-card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .p-5, .patient-card.p-5, .card.p-5 {
+    padding: 16px !important;
+  }
+
+  .p-4, .patient-card.p-4, .card.p-4 {
+    padding: 14px !important;
+  }
+
+  /* Full-width stretch for reminder filter tabs on mobile */
+  .reminder-filter-container {
+    width: 100% !important;
+    display: flex !important;
+  }
+  .reminder-filter-tab {
+    flex: 1 1 0 !important;
+    padding: 8px 6px !important;
+    font-size: 0.88rem !important;
+    text-align: center !important;
+  }
+
+  /* Touch-friendly Action Buttons */
+  .patient-btn, .btn-lg {
+    font-size: 1.05rem !important;
+    padding: 10px 18px !important;
+  }
+
+  /* Emergency Help Button on Mobile */
+  .fixed-help-widget {
+    bottom: 14px !important;
+    left: 10px !important;
+    z-index: 1050;
+  }
+  .help-emergency-btn {
+    font-size: 0.92rem !important;
+    padding: 9px 13px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4) !important;
+  }
+  .help-emergency-btn i {
+    font-size: 1.15rem !important;
+  }
+
+  /* Floating Voice Assistant Widget on Mobile */
+  .voice-widget {
+    bottom: 14px !important;
+    right: 10px !important;
+    z-index: 1050;
+  }
+  .voice-btn {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.25rem !important;
+  }
+  .voice-panel {
+    width: calc(100vw - 20px) !important;
+    max-width: 350px !important;
+    margin-bottom: 8px !important;
+    padding: 12px !important;
+  }
+
+  /* Cognitive Matching Cards on Small Screens */
+  .matching-card {
+    height: 85px !important;
+    border-radius: 12px !important;
+  }
+  .matching-card-front, .matching-card-back {
+    font-size: 1.85rem !important;
+    border-radius: 12px !important;
+  }
+
+  /* Modals on Mobile */
+  .modal-dialog {
+    margin: 10px !important;
+    max-width: calc(100vw - 20px) !important;
+  }
+}
+
+/* ---------------------------------------------------- */
+/* PHABLETS & SMALL TABLETS (576px to 767.98px)         */
+/* ---------------------------------------------------- */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .matching-card {
+    height: 105px !important;
+  }
+  .matching-card-front, .matching-card-back {
+    font-size: 2.2rem !important;
+  }
+  .p-5, .patient-card.p-5, .card.p-5 {
+    padding: 1.75rem !important;
+  }
+}
+
+/* ---------------------------------------------------- */
+/* ULTRA-COMPACT MOBILE SCREENS (<= 380px)              */
+/* ---------------------------------------------------- */
+@media (max-width: 380px) {
+  .navbar-brand-bubble {
+    padding: 4px 4px !important;
+  }
+  .navbar-brand-bubble .brand-text {
+    font-size: 1.15rem !important;
+  }
+  .bubble-mobile-toggler {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .theme-toggle-icon-btn {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .help-emergency-btn span {
+    font-size: 0.82rem !important;
+  }
+}

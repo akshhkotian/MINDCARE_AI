@@ -421,8 +421,8 @@ const CaregiverDashboard = () => {
 
       {/* 6. Performance Summary Metrics Cards */}
       <div className="row g-3 mb-4">
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <div className="col-6 col-lg-3">
+          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
             <div className="text-secondary fs-6 fw-bold">AVERAGE ACCURACY</div>
             <div className="fs-2 fw-bold text-rose">{avgAccuracy}%</div>
             <div className="progress mt-2" style={{ height: '6px' }}>
@@ -431,24 +431,24 @@ const CaregiverDashboard = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <div className="col-6 col-lg-3">
+          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
             <div className="text-secondary fs-6 fw-bold">AVERAGE SCORE</div>
             <div className="fs-2 fw-bold text-success">{avgScore} pts</div>
             <span className="text-secondary fs-6">Across {totalSessions} sessions</span>
           </div>
         </div>
 
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white">
-            <div className="text-secondary fs-6 fw-bold">AVG COMPLETION TIME</div>
-            <div className="fs-2 fw-bold text-info">{avgTime} secs</div>
+        <div className="col-6 col-lg-3">
+          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+            <div className="text-secondary fs-6 fw-bold">AVG TIME</div>
+            <div className="fs-2 fw-bold text-info">{avgTime}s</div>
             <span className="text-secondary fs-6">Per activity completion</span>
           </div>
         </div>
 
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <div className="col-6 col-lg-3">
+          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
             <div className="text-secondary fs-6 fw-bold">TOTAL MISTAKES</div>
             <div className="fs-2 fw-bold text-warning">{totalMistakes}</div>
             <span className="text-secondary fs-6">Total recorded errors</span>

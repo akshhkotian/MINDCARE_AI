@@ -252,28 +252,28 @@ const SequenceMemory = () => {
         />
       </div>
 
-      <div className="card patient-card p-5 shadow-lg my-4 border-rose">
+      <div className="card patient-card p-3 p-md-5 shadow-lg my-3 my-md-4 border-rose">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <span className="badge bg-rose-light text-rose border border-rose fs-4 px-3 py-2 rounded-pill">
+          <span className="badge bg-rose-light text-rose border border-rose fs-5 fs-md-4 px-3 py-2 rounded-pill">
             Level {level} ({cfg.length} Steps)
           </span>
-          <span className="badge bg-secondary fs-4 px-3 py-2 rounded-pill">
+          <span className="badge bg-secondary fs-5 fs-md-4 px-3 py-2 rounded-pill">
             Mistakes: {mistakes}
           </span>
         </div>
 
-        <h2 className="fw-bold text-rose mb-3">
+        <h2 className="fw-bold text-rose mb-3 fs-3 fs-md-2">
           {isShowingSequence ? "Watch the Sequence Carefully!" : "Your Turn: Tap the Buttons in Order!"}
         </h2>
 
         {/* Feedback Banner */}
         {feedback && (
-          <div className={`alert ${feedback.type === 'right' ? 'alert-success' : 'alert-danger'} fs-3 p-3 rounded-4 mb-4 fw-bold shadow-sm d-flex flex-column align-items-center justify-content-center gap-2`}>
+          <div className={`alert ${feedback.type === 'right' ? 'alert-success' : 'alert-danger'} fs-4 fs-md-3 p-3 rounded-4 mb-4 fw-bold shadow-sm d-flex flex-column align-items-center justify-content-center gap-2`}>
             <div>{feedback.message}</div>
             {feedback.type === 'wrong' && (
               <button 
                 onClick={handleTryAgain}
-                className="btn patient-btn patient-btn-danger fs-4 px-4 py-2 mt-2"
+                className="btn patient-btn patient-btn-danger fs-5 fs-md-4 px-4 py-2 mt-2"
               >
                 <i className="bi bi-arrow-counterclockwise me-2"></i> Try Again (Watch Sequence)
               </button>
@@ -282,13 +282,13 @@ const SequenceMemory = () => {
         )}
 
         {/* Interactive Pad */}
-        <div className="row g-4 justify-content-center my-4">
+        <div className="row g-3 g-md-4 justify-content-center my-3 my-md-4">
           {BUTTONS.map((item) => (
             <div key={item.num} className="col-6 col-md-3">
               <button
                 onClick={() => handleButtonClick(item.num)}
                 disabled={isShowingSequence || completed || (feedback?.type === 'wrong')}
-                className="btn w-100 py-5 fs-2 fw-bold rounded-4 shadow"
+                className="btn w-100 py-4 py-md-5 fs-3 fs-md-2 fw-bold rounded-4 shadow"
                 style={{
                   backgroundColor: activeButton === item.num ? '#FFD54F' : item.color,
                   borderColor: activeButton === item.num ? '#3D2630' : item.color,

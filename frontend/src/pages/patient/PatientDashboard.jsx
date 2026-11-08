@@ -271,11 +271,11 @@ const PatientDashboard = () => {
       )}
 
       {/* Main Quick Actions Navigation Cards */}
-      <div className="row g-4 mb-5">
-        <div className="col-md-6 col-lg-3">
+      <div className="row g-3 g-md-4 mb-4 mb-md-5">
+        <div className="col-12 col-sm-6 col-lg-3">
           <div 
             onClick={() => navigate('/patient/activities')}
-            className="card patient-card h-100 text-center p-4 cursor-pointer d-flex flex-column"
+            className="card patient-card h-100 text-center p-3 p-md-4 cursor-pointer d-flex flex-column"
             style={{ borderTop: '6px solid #8FAF9A' }}
           >
             <div className="card-body d-flex flex-column align-items-center justify-content-between p-0 h-100">
@@ -291,10 +291,10 @@ const PatientDashboard = () => {
           </div>
         </div>
 
-        <div className="col-md-6 col-lg-3">
+        <div className="col-12 col-sm-6 col-lg-3">
           <div 
             onClick={() => navigate('/patient/familiar-faces')}
-            className="card patient-card h-100 text-center p-4 cursor-pointer d-flex flex-column"
+            className="card patient-card h-100 text-center p-3 p-md-4 cursor-pointer d-flex flex-column"
             style={{ borderTop: '6px solid #8FAF9A' }}
           >
             <div className="card-body d-flex flex-column align-items-center justify-content-between p-0 h-100">
@@ -310,10 +310,10 @@ const PatientDashboard = () => {
           </div>
         </div>
 
-        <div className="col-md-6 col-lg-3">
+        <div className="col-12 col-sm-6 col-lg-3">
           <div 
             onClick={() => navigate('/patient/memory')}
-            className="card patient-card h-100 text-center p-4 cursor-pointer d-flex flex-column"
+            className="card patient-card h-100 text-center p-3 p-md-4 cursor-pointer d-flex flex-column"
             style={{ borderTop: '6px solid #8FAF9A' }}
           >
             <div className="card-body d-flex flex-column align-items-center justify-content-between p-0 h-100">
@@ -329,10 +329,10 @@ const PatientDashboard = () => {
           </div>
         </div>
 
-        <div className="col-md-6 col-lg-3">
+        <div className="col-12 col-sm-6 col-lg-3">
           <div 
             onClick={() => navigate('/patient/reminders')}
-            className="card patient-card h-100 text-center p-4 cursor-pointer d-flex flex-column"
+            className="card patient-card h-100 text-center p-3 p-md-4 cursor-pointer d-flex flex-column"
             style={{ borderTop: '6px solid #8FAF9A' }}
           >
             <div className="card-body d-flex flex-column align-items-center justify-content-between p-0 h-100">

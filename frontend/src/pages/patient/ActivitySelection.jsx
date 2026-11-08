@@ -115,7 +115,7 @@ const ActivitySelection = () => {
         {activities.map((act) => {
           const recLevel = activityProfiles[act.id] || 'Easy';
           return (
-            <div key={act.id} className="col-md-6 col-lg-3">
+            <div key={act.id} className="col-12 col-sm-6 col-lg-3">
               <div 
                 onClick={() => handleSelectActivity(act)}
                 className="card patient-card text-center h-100 p-3 cursor-pointer"
