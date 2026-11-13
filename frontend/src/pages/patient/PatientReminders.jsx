@@ -37,15 +37,21 @@ const PatientReminders = () => {
 
   const handleToggleComplete = async (rem) => {
     const newStatus = rem.status === 'Completed' ? 'Pending' : 'Completed';
+    // Optimistically update UI immediately
+    setReminders(prev => prev.map((r) => r.id === rem.id ? { ...r, status: newStatus } : r));
+
+    if (newStatus === 'Completed') {
+      speakInstruction(`Great job! Marked ${rem.title} as completed.`);
+    } else {
+      speakInstruction(`Marked ${rem.title} as pending.`);
+    }
+
     try {
       await remindersAPI.update(rem.id, { status: newStatus });
-      setReminders(reminders.map((r) => r.id === rem.id ? { ...r, status: newStatus } : r));
-      if (newStatus === 'Completed') {
-        speakInstruction(`Great job! Marked ${rem.title} as completed.`);
-      } else {
-        speakInstruction(`Marked ${rem.title} as pending.`);
-      }
     } catch (err) {
+      console.warn("Could not sync reminder status to server:", err);
+      // Revert if failed
+      setReminders(prev => prev.map((r) => r.id === rem.id ? { ...r, status: rem.status } : r));
       alert("Failed to update reminder status.");
     }
   };

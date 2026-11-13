@@ -222,27 +222,76 @@ const ReminderNotificationModal = () => {
 
 
   const handleMarkDone = async () => {
+    if (!activeNotification) return;
+    const remToComplete = activeNotification;
+
+    // 1. Immediately dismiss modal so user is never stuck
+    setActiveNotification(null);
+    activeNotificationRef.current = null;
+
+    // 2. Mark completed in memory so timer never re-triggers it
+    const updated = remindersRef.current.map(r => r.id === remToComplete.id ? { ...r, status: 'Completed' } : r);
+    setReminders(updated);
+    remindersRef.current = updated;
+
+    // 3. Audio confirmation
+    speakInstruction(`Great job! Marked ${remToComplete.title} as completed.`);
+
+    // 4. Asynchronously persist to server
     try {
-      await remindersAPI.update(activeNotification.id, { status: 'Completed' });
-      speakInstruction(`Great job! Marked ${activeNotification.title} as completed.`);
-
-      const updated = remindersRef.current.map(r => r.id === activeNotification.id ? { ...r, status: 'Completed' } : r);
-      setReminders(updated);
-      remindersRef.current = updated;
-
-      setActiveNotification(null);
-      activeNotificationRef.current = null;
+      await remindersAPI.update(remToComplete.id, { status: 'Completed' });
     } catch (err) {
-      console.error("Failed to update status:", err);
+      console.warn("Could not sync completed status to server:", err);
     }
   };
 
-  const handleStartActivity = () => {
-    handleMarkDone();
-    navigate('/patient/activities');
+  const handleStartActivity = async () => {
+    if (!activeNotification) return;
+    const remToComplete = activeNotification;
+
+    // 1. Immediately dismiss modal
+    setActiveNotification(null);
+    activeNotificationRef.current = null;
+
+    // 2. Mark completed in memory
+    const updated = remindersRef.current.map(r => r.id === remToComplete.id ? { ...r, status: 'Completed' } : r);
+    setReminders(updated);
+    remindersRef.current = updated;
+
+    // 3. Audio confirmation
+    speakInstruction(`Starting activities for ${remToComplete.title}.`);
+
+    // 4. Navigate appropriately depending on user role
+    if (user?.role === 'caregiver') {
+      navigate('/caregiver/dashboard');
+    } else {
+      navigate('/patient/activities');
+    }
+
+    // 5. Asynchronously persist to server
+    try {
+      await remindersAPI.update(remToComplete.id, { status: 'Completed' });
+    } catch (err) {
+      console.warn("Could not sync completed status to server:", err);
+    }
+  };
+
+  const handleDismiss = () => {
+    if (!activeNotification) return;
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const remMinutes = parseTimeToMinutes(activeNotification.reminder_time) || (currentHours * 60 + currentMinutes);
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const eventKey = `${activeNotification.id}_${todayStr}_${remMinutes}`;
+    triggeredEventsRef.current.add(eventKey);
+
+    setActiveNotification(null);
+    activeNotificationRef.current = null;
   };
 
   const handleSnooze = () => {
+    if (!activeNotification) return;
     // Snooze for 5 minutes
     snoozedRemindersRef.current[activeNotification.id] = Date.now() + 5 * 60 * 1000;
     speakInstruction("Reminder snoozed for 5 minutes.");
@@ -293,8 +342,8 @@ const ReminderNotificationModal = () => {
               </div>
             </div>
             
-            {/* Alarm Time Badge - Bold, High-Contrast & Always Visible */}
-            <div className="flex-shrink-0 align-self-start align-self-md-center">
+            {/* Alarm Time Badge & Close Button */}
+            <div className="d-flex align-items-center gap-2 flex-shrink-0 align-self-start align-self-md-center">
               <span 
                 className="badge bg-white shadow fs-4 px-3 py-2 rounded-pill font-monospace fw-bold d-inline-flex align-items-center gap-2 border border-2 border-white"
                 style={{ color: '#1e293b', backgroundColor: '#ffffff' }}
@@ -302,6 +351,16 @@ const ReminderNotificationModal = () => {
                 <span>⏰</span>
                 <span>{activeNotification.reminder_time || 'Now'}</span>
               </span>
+              <button
+                type="button"
+                className="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm"
+                style={{ width: '38px', height: '38px' }}
+                onClick={handleDismiss}
+                title="Dismiss Alarm"
+                aria-label="Dismiss Alarm"
+              >
+                <i className="bi bi-x-lg text-dark fs-5"></i>
+              </button>
             </div>
           </div>
 
