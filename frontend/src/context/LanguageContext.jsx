@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { syncDomLanguage, translateText } from '../utils/nlpDomTranslator';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English', voiceLang: 'en-IN', flag: '🇮🇳' },
@@ -1401,24 +1402,34 @@ export const LanguageProvider = ({ children }) => {
   const currentLanguage = SUPPORTED_LANGUAGES.find(l => l.code === currentLanguageCode) || SUPPORTED_LANGUAGES[0];
 
   useEffect(() => {
-    // Sync Google Neural Translation on initial mount if non-English preferred
+    // Synchronize full DOM translation immediately on mount
+    syncDomLanguage(currentLanguageCode);
     if (currentLanguageCode && currentLanguageCode !== 'en') {
       applyGoogleTranslate(currentLanguageCode);
     }
-  }, []);
+  }, [currentLanguageCode]);
 
   const changeLanguage = (code) => {
     if (SUPPORTED_LANGUAGES.some(l => l.code === code)) {
       setCurrentLanguageCode(code);
       localStorage.setItem('mindcare_lang', code);
+      syncDomLanguage(code);
       applyGoogleTranslate(code);
     }
   };
 
   const t = (key, fallback = '') => {
+    if (currentLanguageCode === 'en') {
+      return fallback || key;
+    }
     const langObj = translations[currentLanguageCode];
     if (langObj && langObj[key] !== undefined) {
       return langObj[key];
+    }
+    // Also look up phrase in NLP Translation Lexicon
+    const nlpTrans = translateText(fallback || key, currentLanguageCode);
+    if (nlpTrans && nlpTrans !== (fallback || key)) {
+      return nlpTrans;
     }
     const defaultObj = translations.en;
     if (defaultObj && defaultObj[key] !== undefined) {

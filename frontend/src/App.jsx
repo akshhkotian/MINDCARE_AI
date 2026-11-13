@@ -4,8 +4,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { VoiceProvider, useVoice } from './context/VoiceContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { CaregiverPatientProvider } from './context/CaregiverPatientContext';
+import { syncDomLanguage } from './utils/nlpDomTranslator';
 
 import api from './services/api';
 import Navbar from './components/Navbar';
@@ -67,6 +68,18 @@ const RouteSpeechStopper = () => {
   return null;
 };
 
+const RouteLanguageSyncer = () => {
+  const location = useLocation();
+  const { currentLanguageCode } = useLanguage();
+
+  useEffect(() => {
+    // Re-synchronize DOM translation on every route change
+    syncDomLanguage(currentLanguageCode);
+  }, [location.pathname, currentLanguageCode]);
+
+  return null;
+};
+
 const BackendWarmer = () => {
   useEffect(() => {
     // Non-blocking pre-warm ping to wake up cloud backend and DB pool upon visit
@@ -85,6 +98,7 @@ function App() {
               <Router>
                 <BackendWarmer />
                 <RouteSpeechStopper />
+                <RouteLanguageSyncer />
                 <div className="d-flex flex-column min-vh-100 app-container">
               <Navbar />
               <div className="flex-grow-1">
