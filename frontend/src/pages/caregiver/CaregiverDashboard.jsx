@@ -210,17 +210,15 @@ const CaregiverDashboard = () => {
         </div>
       )}
 
-      {/* 1. Patient Connection Requests Section */}
-      <div className="card border-rose rounded-4 shadow-sm bg-white p-4 mb-4" style={{ borderLeft: '6px solid #4B3F3F' }}>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h3 className="fw-bold text-rose mb-0">
-            <i className="bi bi-person-plus-fill me-2"></i> Patient Connection Requests ({pendingRequests.length})
-          </h3>
-        </div>
+      {/* 1. Patient Connection Requests Section (Only displayed when there are pending requests) */}
+      {pendingRequests.length > 0 && (
+        <div className="card border-rose rounded-4 shadow-sm bg-white p-4 mb-4" style={{ borderLeft: '6px solid #4B3F3F' }}>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h3 className="fw-bold text-rose mb-0">
+              <i className="bi bi-person-plus-fill me-2"></i> Patient Connection Requests ({pendingRequests.length})
+            </h3>
+          </div>
 
-        {pendingRequests.length === 0 ? (
-          <p className="text-secondary fs-6 mb-0">No pending patient connection requests.</p>
-        ) : (
           <div className="row g-3">
             {pendingRequests.map((req) => (
               <div key={req.id} className="col-md-6 col-lg-4">
@@ -250,8 +248,8 @@ const CaregiverDashboard = () => {
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 2. Emergency Help Requests Section */}
       {helpRequests.filter(h => h.status === 'Pending').length > 0 && (

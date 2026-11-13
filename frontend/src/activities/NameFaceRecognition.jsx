@@ -257,8 +257,7 @@ const NameFaceRecognition = () => {
             <span className="badge bg-rose-light text-rose fs-6 px-3 py-2 rounded-pill mb-2 border border-rose">
               <i className="bi bi-people-fill me-1"></i> Activity 6: Face Recognition
             </span>
-            <h1 className="fw-extrabold text-rose mb-1">Familiar Face Recognition Challenge</h1>
-            <p className="text-secondary fs-4 mb-0">Identify your family members and loved ones from the photos.</p>
+            <h1 className="fw-extrabold text-rose mb-0">Familiar Face Recognition Challenge</h1>
           </div>
 
           {/* Level Switcher (only shown when familiar faces are present) */}
