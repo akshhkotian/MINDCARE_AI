@@ -197,6 +197,11 @@ const CaregiverDashboard = () => {
           <span className="badge bg-rose-light text-rose border border-rose fs-5 px-3 py-2 rounded-pill">
             Your Caregiver ID: <strong>{user?.caregiver_code || 'MC-CG-1001'}</strong>
           </span>
+          {pendingRequests.length > 0 && (
+            <span className="badge bg-warning text-dark border border-warning fs-5 px-3 py-2 rounded-pill shadow-sm">
+              <i className="bi bi-bell-fill me-1 text-danger"></i> {pendingRequests.length} New Connection Request{pendingRequests.length > 1 ? 's' : ''}!
+            </span>
+          )}
           <Link to="/caregiver/familiar-faces" className="btn patient-btn-primary rounded-pill px-3 py-2 fs-6">
             <i className="bi bi-person-bounding-box me-1"></i> Familiar People
           </Link>
