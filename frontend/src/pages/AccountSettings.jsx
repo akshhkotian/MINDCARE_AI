@@ -178,7 +178,7 @@ const AccountSettings = () => {
               {isCaregiver && user?.caregiver_code && (
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <span className="text-secondary fs-6">Caregiver ID Code:</span>
-                  <span className="badge bg-warning text-dark border border-warning fs-6">
+                  <span className="badge bg-warning text-dark border border-warning fs-6 notranslate" translate="no">
                     {user.caregiver_code}
                   </span>
                 </div>

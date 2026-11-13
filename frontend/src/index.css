@@ -1170,3 +1170,43 @@ input, select, textarea {
     font-size: 0.82rem !important;
   }
 }
+
+/* ---------------------------------------------------- */
+/* SILENT NEURAL MACHINE TRANSLATION (NLP) STYLING      */
+/* ---------------------------------------------------- */
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+/* Hide Google Translate top banner, tooltip balloons, and branding bars */
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover,
+#google_translate_element {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+/* Eliminate translation word hover highlights so UI remains clean & native */
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Prevent Google font wrapper tags from altering font styling */
+font > font {
+  background-color: inherit;
+  color: inherit;
+}
+

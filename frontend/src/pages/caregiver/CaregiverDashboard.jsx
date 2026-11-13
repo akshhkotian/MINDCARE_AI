@@ -195,7 +195,7 @@ const CaregiverDashboard = () => {
         </div>
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <span className="badge bg-rose-light text-rose border border-rose fs-5 px-3 py-2 rounded-pill">
-            Your Caregiver ID: <strong>{user?.caregiver_code || 'MC-CG-1001'}</strong>
+            Your Caregiver ID: <strong className="notranslate" translate="no">{user?.caregiver_code || 'MC-CG-1001'}</strong>
           </span>
           {pendingRequests.length > 0 && (
             <span className="badge bg-warning text-dark border border-warning fs-5 px-3 py-2 rounded-pill shadow-sm">

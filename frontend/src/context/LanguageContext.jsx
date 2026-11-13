@@ -1319,6 +1319,77 @@ export const translations = {
   }
 };
 
+// Cross-domain and host cookie management for Google Neural Translation (NLP) Engine
+export const applyGoogleTranslate = (langCode) => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const host = window.location.hostname;
+    const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+    const parts = host.split('.');
+    const rootDomain = (!isLocalhost && parts.length > 1) ? '.' + parts.slice(-2).join('.') : '';
+
+    const clearCookies = () => {
+      const past = 'Thu, 01 Jan 1970 00:00:00 UTC';
+      document.cookie = `googtrans=; expires=${past}; path=/;`;
+      document.cookie = `googtrans=; expires=${past}; path=/; domain=${host};`;
+      if (rootDomain) {
+        document.cookie = `googtrans=; expires=${past}; path=/; domain=${rootDomain};`;
+      }
+    };
+
+    if (langCode === 'en') {
+      clearCookies();
+
+      const combo = document.querySelector('.goog-te-combo');
+      if (combo) {
+        const defaultOpt = Array.from(combo.options).find(o => o.value === '' || o.value === 'en');
+        combo.value = defaultOpt ? defaultOpt.value : '';
+        combo.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      // Check if Google Translate banner frame has restore button
+      const iframe = document.querySelector('.goog-te-banner-frame');
+      if (iframe && iframe.contentDocument) {
+        const restoreBtn = iframe.contentDocument.getElementById(':1.restore') || 
+                           iframe.contentDocument.querySelector('button[id*="restore"]');
+        if (restoreBtn) restoreBtn.click();
+      }
+      return;
+    }
+
+    // Set cookie for target language
+    const val = `/en/${langCode}`;
+    document.cookie = `googtrans=${val}; path=/;`;
+    document.cookie = `googtrans=${val}; path=/; domain=${host};`;
+    if (rootDomain) {
+      document.cookie = `googtrans=${val}; path=/; domain=${rootDomain};`;
+    }
+
+    const triggerCombo = () => {
+      const combo = document.querySelector('.goog-te-combo');
+      if (combo) {
+        combo.value = langCode;
+        combo.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      }
+      return false;
+    };
+
+    if (!triggerCombo()) {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (triggerCombo() || attempts >= 30) {
+          clearInterval(interval);
+        }
+      }, 150);
+    }
+  } catch (err) {
+    console.warn('Google Translate sync notice:', err);
+  }
+};
+
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
@@ -1329,10 +1400,18 @@ export const LanguageProvider = ({ children }) => {
 
   const currentLanguage = SUPPORTED_LANGUAGES.find(l => l.code === currentLanguageCode) || SUPPORTED_LANGUAGES[0];
 
+  useEffect(() => {
+    // Sync Google Neural Translation on initial mount if non-English preferred
+    if (currentLanguageCode && currentLanguageCode !== 'en') {
+      applyGoogleTranslate(currentLanguageCode);
+    }
+  }, []);
+
   const changeLanguage = (code) => {
     if (SUPPORTED_LANGUAGES.some(l => l.code === code)) {
       setCurrentLanguageCode(code);
       localStorage.setItem('mindcare_lang', code);
+      applyGoogleTranslate(code);
     }
   };
 
