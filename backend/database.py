@@ -327,14 +327,6 @@ def init_db():
             ]
             cursor.executemany("INSERT INTO activities (id, name, description) VALUES (?, ?, ?)", activities)
 
-            # Insert Reminders
-            reminders = [
-                (1, 2, 1, 'Morning Hydration', 'Drink a large glass of warm water after waking up.', '2026-09-10', '08:00 AM', 'Daily', 'Pending'),
-                (2, 2, 1, 'Cognitive Activity', 'Complete 15 minutes of Memory Matching on MindCare AI.', '2026-09-10', '10:30 AM', 'Daily', 'Pending'),
-                (3, 2, 1, 'Afternoon Walk', 'Take a 20-minute gentle walk in the garden with family.', '2026-09-10', '04:00 PM', 'Daily', 'Pending')
-            ]
-            cursor.executemany("INSERT INTO reminders (id, patient_id, caregiver_id, title, description, reminder_date, reminder_time, repeat_option, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", reminders)
-            
             # Insert Memory Items
             mem_items = [
                 (1, 2, 'Anitha Patel', 'Family', 'Daughter — Calls every evening at 6:00 PM. Lives in Bengaluru.'),
@@ -378,6 +370,9 @@ def init_db():
             cursor.execute("ALTER TABLE recommendations ADD COLUMN score REAL DEFAULT 0.0")
         if 'stage' not in rec_cols:
             cursor.execute("ALTER TABLE recommendations ADD COLUMN stage TEXT DEFAULT 'Personalized Stage'")
+
+        # Purge any default/demo reminders so only caregiver-added reminders exist
+        cursor.execute("DELETE FROM reminders WHERE title IN ('Morning Hydration', 'Cognitive Activity', 'Afternoon Walk', 'Daily Hydration', 'Daily Cognitive Activity', 'Morning Medication')")
 
         conn.commit()
         conn.close()
@@ -537,13 +532,6 @@ def init_db():
                     ]
                     cursor.executemany("INSERT INTO activities (id, name, description) VALUES (%s, %s, %s)", activities)
 
-                    reminders = [
-                        (1, 2, 1, 'Morning Hydration', 'Drink a large glass of warm water after waking up.', '2026-09-10', '08:00 AM', 'Daily', 'Pending'),
-                        (2, 2, 1, 'Cognitive Activity', 'Complete 15 minutes of Memory Matching on MindCare AI.', '2026-09-10', '10:30 AM', 'Daily', 'Pending'),
-                        (3, 2, 1, 'Afternoon Walk', 'Take a 20-minute gentle walk in the garden with family.', '2026-09-10', '04:00 PM', 'Daily', 'Pending')
-                    ]
-                    cursor.executemany("INSERT INTO reminders (id, patient_id, caregiver_id, title, description, reminder_date, reminder_time, repeat_option, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", reminders)
-
                     mem_items = [
                         (1, 2, 'Anitha Patel', 'Family', 'Daughter — Calls every evening at 6:00 PM. Lives in Bengaluru.'),
                         (2, 2, 'Rahul Patel', 'Family', 'Son — Visits every Sunday morning. Loves playing chess with you.'),
@@ -565,6 +553,13 @@ def init_db():
                         (2, 1, 'Good Progress', 'Medium', "Great job on Memory Matching! Let's try the Medium challenge today.", "Memory Matching accuracy is 85.0% with low mistakes. Recommended Medium level for gradual cognitive progression.", 78.0, 'Personalized Stage')
                     ]
                     cursor.executemany("INSERT INTO recommendations (patient_id, activity_id, performance_category, recommended_difficulty, recommendation_reason, caregiver_reason, score, stage) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", recs)
+
+                # Purge any default/demo reminders so only caregiver-added reminders exist
+                try:
+                    cursor.execute("DELETE FROM reminders WHERE title IN ('Morning Hydration', 'Cognitive Activity', 'Afternoon Walk', 'Daily Hydration', 'Daily Cognitive Activity', 'Morning Medication')")
+                    conn.commit()
+                except Exception as purge_err:
+                    print(f"[Database Info] Reminders purge note: {purge_err}")
 
             conn.close()
             print("[Database] Connected to MySQL database and verified schema tables.")

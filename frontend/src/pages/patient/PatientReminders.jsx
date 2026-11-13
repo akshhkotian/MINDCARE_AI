@@ -23,7 +23,11 @@ const PatientReminders = () => {
       const list = res.data || [];
       setReminders(list);
       const pendingCount = list.filter(r => r.status !== 'Completed').length;
-      speakInstruction(`You have ${pendingCount} active reminders scheduled for today.`);
+      if (pendingCount > 0) {
+        speakInstruction(`You have ${pendingCount} active reminders scheduled for today.`);
+      } else {
+        speakInstruction("You have no pending reminders scheduled for today.");
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -127,16 +131,19 @@ const PatientReminders = () => {
         </div>
       ) : filteredReminders.length === 0 ? (
         <div className="card border-0 rounded-4 p-5 text-center my-4 bg-white shadow-sm">
-          <i className="bi bi-calendar2-check display-1 text-success mb-3"></i>
-          <h2 className="fw-bold text-dark mb-0">No Reminders</h2>
-          {filter === 'Completed' && (
+          <i className="bi bi-calendar2-check display-1 text-secondary mb-3"></i>
+          <h2 className="fw-bold text-dark mb-2">No Reminders Scheduled</h2>
+          {filter === 'Completed' ? (
             <p className="fs-4 text-muted max-w-lg mx-auto mt-2 mb-0">
               You have not completed any reminders yet today.
             </p>
-          )}
-          {filter === 'Pending' && (
+          ) : filter === 'Pending' ? (
             <p className="fs-4 text-muted max-w-lg mx-auto mt-2 mb-0">
               Great news! All your daily tasks are completed.
+            </p>
+          ) : (
+            <p className="fs-4 text-muted max-w-lg mx-auto mt-2 mb-0">
+              Your caregiver has not added any reminders yet. Once added by your caregiver, they will appear here.
             </p>
           )}
         </div>

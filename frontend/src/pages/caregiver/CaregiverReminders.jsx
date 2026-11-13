@@ -74,29 +74,10 @@ const CaregiverReminders = () => {
     }
   };
 
-  const handleAddPreset = async (preset) => {
-    try {
-      await remindersAPI.create({
-        patient_id: selectedPatientId,
-        caregiver_id: user.id,
-        title: preset.title,
-        description: preset.description,
-        reminder_date: new Date().toISOString().split('T')[0],
-        reminder_time: preset.time,
-        repeat_option: 'Daily'
-      });
-      fetchReminders();
-    } catch (err) {
-      alert("Failed to add preset reminder.");
-    }
-  };
-
   const handleSetNextMinute = () => {
     const nextMin = new Date(Date.now() + 65 * 1000);
     const timeStr = nextMin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     setReminderTime(timeStr);
-    if (!title.trim()) setTitle('Daily Hydration');
-    if (!description.trim()) setDescription('Drink a large glass of fresh water to stay hydrated and refreshed.');
   };
 
   const handleDeleteReminder = async (id, remTitle) => {
@@ -168,76 +149,6 @@ const CaregiverReminders = () => {
               </select>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Preset Quick Add Bar */}
-      <div className="card border-0 rounded-4 shadow-sm bg-white p-4 mb-4">
-        <div className="mb-3">
-          <h4 className="fw-bold text-dark mb-0">
-            <i className="bi bi-lightning-charge-fill text-warning me-2"></i> Quick Default Preset Reminders
-          </h4>
-        </div>
-        <div className="row g-3">
-          <div className="col-12 col-sm-6 col-lg-3">
-            <button
-              onClick={() => handleAddPreset({
-                title: 'Daily Hydration',
-                description: 'Drink a large glass of fresh water to stay hydrated and refreshed.',
-                time: '08:00 AM'
-              })}
-              className="btn btn-outline-primary w-100 p-3 rounded-3 text-start h-100"
-            >
-              <div className="fw-bold fs-5 text-dark mb-1">💧 Daily Hydration</div>
-              <div className="small text-muted">08:00 AM • Daily</div>
-              <div className="mt-2 text-primary fw-bold text-sm">+ Add Preset</div>
-            </button>
-          </div>
-
-          <div className="col-12 col-sm-6 col-lg-3">
-            <button
-              onClick={() => handleAddPreset({
-                title: 'Daily Cognitive Activity',
-                description: 'It\'s time to play your daily cognitive training games on MindCare AI.',
-                time: '10:30 AM'
-              })}
-              className="btn btn-outline-primary w-100 p-3 rounded-3 text-start h-100"
-            >
-              <div className="fw-bold fs-5 text-dark mb-1">🧠 Cognitive Activity</div>
-              <div className="small text-muted">10:30 AM • Daily</div>
-              <div className="mt-2 text-primary fw-bold text-sm">+ Add Preset</div>
-            </button>
-          </div>
-
-          <div className="col-12 col-sm-6 col-lg-3">
-            <button
-              onClick={() => handleAddPreset({
-                title: 'Morning Medication',
-                description: 'Take morning prescribed pills with water after breakfast.',
-                time: '09:00 AM'
-              })}
-              className="btn btn-outline-primary w-100 p-3 rounded-3 text-start h-100"
-            >
-              <div className="fw-bold fs-5 text-dark mb-1">💊 Morning Medication</div>
-              <div className="small text-muted">09:00 AM • Daily</div>
-              <div className="mt-2 text-primary fw-bold text-sm">+ Add Preset</div>
-            </button>
-          </div>
-
-          <div className="col-12 col-sm-6 col-lg-3">
-            <button
-              onClick={() => handleAddPreset({
-                title: 'Afternoon Walk',
-                description: 'Take a 20-minute gentle walk in the garden or living area.',
-                time: '04:00 PM'
-              })}
-              className="btn btn-outline-primary w-100 p-3 rounded-3 text-start h-100"
-            >
-              <div className="fw-bold fs-5 text-dark mb-1">🚶‍♂️ Afternoon Walk</div>
-              <div className="small text-muted">04:00 PM • Daily</div>
-              <div className="mt-2 text-primary fw-bold text-sm">+ Add Preset</div>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -343,7 +254,7 @@ const CaregiverReminders = () => {
               <div className="p-4 text-center bg-light rounded-4 my-3">
                 <i className="bi bi-calendar-x display-4 text-muted mb-2"></i>
                 <p className="text-muted fs-5 mb-0">No active reminders configured for this patient yet.</p>
-                <p className="small text-secondary">Click any preset above to quickly create standard daily reminders.</p>
+                <p className="small text-secondary">Use the form on the left to add a personalized reminder for this patient.</p>
               </div>
             ) : (
               <div className="table-responsive">

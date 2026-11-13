@@ -4,24 +4,9 @@ import datetime
 
 reminders_bp = Blueprint('reminders', __name__)
 
-DEFAULT_REMINDERS = [
-    {
-        'title': 'Daily Hydration',
-        'description': 'Drink a large glass of fresh water to stay hydrated and refreshed.',
-        'reminder_time': '08:00 AM',
-        'repeat_option': 'Daily'
-    },
-    {
-        'title': 'Daily Cognitive Activity',
-        'description': 'It\'s time to play your daily cognitive training games on MindCare AI.',
-        'reminder_time': '10:30 AM',
-        'repeat_option': 'Daily'
-    }
-]
-
 @reminders_bp.route('', methods=['POST'])
 def create_reminder():
-    """POST /api/reminders - Create a new patient reminder"""
+    """POST /api/reminders - Create a new patient reminder (added by caregiver)"""
     data = request.get_json() or {}
     patient_id = data.get('patient_id')
     caregiver_id = data.get('caregiver_id')
@@ -54,70 +39,13 @@ def create_reminder():
 
 @reminders_bp.route('/<int:patient_id>', methods=['GET'])
 def get_reminders(patient_id):
-    """GET /api/reminders/<patient_id> - Get all reminders for a patient. Seed 2 default reminders if none exist."""
+    """GET /api/reminders/<patient_id> - Get all reminders for a patient (only those added by caregiver)"""
     try:
         reminders = execute_query(
             'SELECT * FROM reminders WHERE patient_id = %s ORDER BY id DESC',
             (patient_id,), fetchall=True
         )
-        
-        # If no reminders exist for patient, automatically seed default reminders
-        if not reminders:
-            user_row = execute_query('SELECT caregiver_id FROM users WHERE id = %s', (patient_id,), fetchone=True)
-            caregiver_id = (user_row and user_row.get('caregiver_id')) or 1
-            today_str = datetime.date.today().isoformat()
-            
-            for default_rem in DEFAULT_REMINDERS:
-                execute_query(
-                    '''INSERT INTO reminders 
-                       (patient_id, caregiver_id, title, description, reminder_date, reminder_time, repeat_option, status)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')''',
-                    (patient_id, caregiver_id, default_rem['title'], default_rem['description'],
-                     today_str, default_rem['reminder_time'], default_rem['repeat_option']),
-                    commit=True
-                )
-            
-            reminders = execute_query(
-                'SELECT * FROM reminders WHERE patient_id = %s ORDER BY id DESC',
-                (patient_id,), fetchall=True
-            )
-            
         return jsonify(reminders or []), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-@reminders_bp.route('/seed-defaults/<int:patient_id>', methods=['POST'])
-def seed_defaults(patient_id):
-    """POST /api/reminders/seed-defaults/<patient_id> - Seed default reminders on demand"""
-    try:
-        user_row = execute_query('SELECT caregiver_id FROM users WHERE id = %s', (patient_id,), fetchone=True)
-        caregiver_id = (user_row and user_row.get('caregiver_id')) or 1
-        today_str = datetime.date.today().isoformat()
-        
-        added = []
-        for default_rem in DEFAULT_REMINDERS:
-            # Check if title already exists for patient
-            existing = execute_query(
-                'SELECT id FROM reminders WHERE patient_id = %s AND title = %s',
-                (patient_id, default_rem['title']), fetchone=True
-            )
-            if not existing:
-                rem_id = execute_query(
-                    '''INSERT INTO reminders 
-                       (patient_id, caregiver_id, title, description, reminder_date, reminder_time, repeat_option, status)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')''',
-                    (patient_id, caregiver_id, default_rem['title'], default_rem['description'],
-                     today_str, default_rem['reminder_time'], default_rem['repeat_option']),
-                    commit=True
-                )
-                added.append(rem_id)
-                
-        reminders = execute_query(
-            'SELECT * FROM reminders WHERE patient_id = %s ORDER BY id DESC',
-            (patient_id,), fetchall=True
-        )
-        return jsonify({'message': f'Seeded {len(added)} default reminders.', 'reminders': reminders}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -167,4 +95,3 @@ def delete_reminder(reminder_id):
         return jsonify({'message': 'Reminder deleted successfully.'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
