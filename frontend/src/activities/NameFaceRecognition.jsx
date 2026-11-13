@@ -1,54 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
 import { sessionsAPI, familiarPeopleAPI } from '../services/api';
 import LevelSelector from '../components/LevelSelector';
-
-const DEFAULT_FACES_POOL = [
-  {
-    id: 'f1',
-    name: 'Anitha Miller',
-    relationship: 'Daughter',
-    photo_path: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400',
-    description: 'Calls every evening at 6:00 PM. Lives in Chicago.'
-  },
-  {
-    id: 'f2',
-    name: 'David Miller',
-    relationship: 'Son',
-    photo_path: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
-    description: 'Visits every Sunday morning. Loves playing chess.'
-  },
-  {
-    id: 'f3',
-    name: 'Sarah Miller',
-    relationship: 'Granddaughter',
-    photo_path: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400',
-    description: 'Loves gardening and baking cookies on weekends.'
-  },
-  {
-    id: 'f4',
-    name: 'Nurse Emma',
-    relationship: 'Primary Caregiver',
-    photo_path: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400',
-    description: 'Helps with morning wellness routines.'
-  },
-  {
-    id: 'f5',
-    name: 'Uncle George',
-    relationship: 'Brother',
-    photo_path: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
-    description: 'Sends postcards from his travels.'
-  },
-  {
-    id: 'f6',
-    name: 'Priya Sharma',
-    relationship: 'Neighbor & Friend',
-    photo_path: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
-    description: 'Brings fresh flowers on Tuesdays.'
-  }
-];
 
 const LEVEL_CONFIG = {
   1: { numChoices: 3, rounds: 2, diffName: 'Easy' },
@@ -82,7 +37,10 @@ const NameFaceRecognition = () => {
     const saved = localStorage.getItem(`unlocked_lvl_${user?.id || 'guest'}_name_face`);
     return saved ? parseInt(saved, 10) : 1;
   });
-  const [facesPool, setFacesPool] = useState(DEFAULT_FACES_POOL);
+  const [facesPool, setFacesPool] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const facesPoolRef = useRef([]);
+
   const [roundIndex, setRoundIndex] = useState(0);
   const [targetPerson, setTargetPerson] = useState(null);
   const [faceChoices, setFaceChoices] = useState([]);
@@ -98,10 +56,7 @@ const NameFaceRecognition = () => {
 
   useEffect(() => {
     fetchFamiliarFaces();
-    const initLvl = getLevelFromDifficulty(location.state?.difficulty);
-    const startingLvl = Math.min(initLvl, maxUnlockedLevel);
-    startLevel(startingLvl);
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     let timer;
@@ -114,7 +69,15 @@ const NameFaceRecognition = () => {
   }, [stage, countdown]);
 
   const fetchFamiliarFaces = async () => {
+    setLoading(true);
     try {
+      if (!user?.id) {
+        setFacesPool([]);
+        facesPoolRef.current = [];
+        setLoading(false);
+        return;
+      }
+
       const res = await familiarPeopleAPI.getByPatientId(user.id);
       if (res.data && res.data.length > 0) {
         const customFaces = res.data.map((f, i) => ({
@@ -124,26 +87,28 @@ const NameFaceRecognition = () => {
           photo_path: f.photo_path,
           description: f.description
         }));
-        const combined = [...customFaces];
-        DEFAULT_FACES_POOL.forEach((df) => {
-          if (!combined.some(f => f.name === df.name)) {
-            combined.push(df);
-          }
-        });
-        setFacesPool(combined);
+        setFacesPool(customFaces);
+        facesPoolRef.current = customFaces;
+
+        const initLvl = getLevelFromDifficulty(location.state?.difficulty);
+        const startingLvl = Math.min(initLvl, maxUnlockedLevel);
+        startLevel(startingLvl, customFaces);
+      } else {
+        setFacesPool([]);
+        facesPoolRef.current = [];
+        speakInstruction("No familiar faces have been added yet. Please ask your caregiver to add photos of your family and friends.");
       }
     } catch (err) {
-      console.error("Error fetching faces:", err);
+      console.error("Error fetching familiar faces:", err);
+      setFacesPool([]);
+      facesPoolRef.current = [];
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (facesPool.length > 0) {
-      startLevel(1);
-    }
-  }, [facesPool]);
-
-  const startLevel = (lvlNum) => {
+  const startLevel = (lvlNum, poolToUse = facesPoolRef.current) => {
+    if (!poolToUse || poolToUse.length === 0) return;
     setLevel(lvlNum);
     setScore(0);
     setMistakes(0);
@@ -153,21 +118,23 @@ const NameFaceRecognition = () => {
     setStartTime(Date.now());
     setMlResult(null);
     setCountdown(null);
-    setupRound(0, lvlNum);
+    setupRound(0, lvlNum, poolToUse);
   };
 
-  const setupRound = (rIdx, lvlNum) => {
+  const setupRound = (rIdx, lvlNum, poolToUse = facesPoolRef.current) => {
+    if (!poolToUse || poolToUse.length === 0) return;
     const cfg = LEVEL_CONFIG[lvlNum] || LEVEL_CONFIG[1];
     setSelectedFaceId(null);
     setFeedback(null);
 
-    // Pick target person from pool
-    const shuffledPool = [...facesPool].sort(() => Math.random() - 0.5);
+    // Pick target person from patient's familiar pool
+    const shuffledPool = [...poolToUse].sort(() => Math.random() - 0.5);
     const target = shuffledPool[0];
     setTargetPerson(target);
 
-    // Pick distractor faces (to make up numChoices)
-    const distractors = shuffledPool.slice(1, cfg.numChoices);
+    // Pick distractor faces from familiar pool (capped to available pool size)
+    const count = Math.min(cfg.numChoices, poolToUse.length);
+    const distractors = shuffledPool.slice(1, count);
     const choices = [target, ...distractors].sort(() => Math.random() - 0.5);
     setFaceChoices(choices);
 
@@ -192,12 +159,12 @@ const NameFaceRecognition = () => {
       });
       speakInstruction(`Great job! Correct! That is ${targetPerson.name}.`);
 
-      const cfg = LEVEL_CONFIG[level];
+      const cfg = LEVEL_CONFIG[level] || LEVEL_CONFIG[1];
       if (roundIndex + 1 < cfg.rounds) {
         setTimeout(() => {
           const nextR = roundIndex + 1;
           setRoundIndex(nextR);
-          setupRound(nextR, level);
+          setupRound(nextR, level, facesPoolRef.current);
         }, 1600);
       } else {
         setTimeout(() => {
@@ -219,7 +186,7 @@ const NameFaceRecognition = () => {
     setStage('result');
     setCountdown(5);
     const durationSeconds = Math.max(5, Math.round((Date.now() - startTime) / 1000));
-    const cfg = LEVEL_CONFIG[level];
+    const cfg = LEVEL_CONFIG[level] || LEVEL_CONFIG[1];
     const totalPossible = cfg.rounds * 30 * level;
     const accuracyVal = Math.round((finalScore / (totalPossible || 1)) * 100);
 
@@ -265,7 +232,7 @@ const NameFaceRecognition = () => {
         localStorage.setItem(`unlocked_lvl_${user?.id || 'guest'}_name_face`, nextLvl);
       }
       if (level < 10) {
-        startLevel(level + 1);
+        startLevel(level + 1, facesPoolRef.current);
       } else {
         navigate('/patient/activities/event-sequence');
       }
@@ -273,9 +240,9 @@ const NameFaceRecognition = () => {
       const adaptLevel = Math.max(1, level - 1);
       setMaxUnlockedLevel(adaptLevel);
       localStorage.setItem(`unlocked_lvl_${user?.id || 'guest'}_name_face`, adaptLevel);
-      startLevel(adaptLevel);
+      startLevel(adaptLevel, facesPoolRef.current);
     } else {
-      startLevel(level);
+      startLevel(level, facesPoolRef.current);
     }
   };
 
@@ -286,201 +253,268 @@ const NameFaceRecognition = () => {
       {/* Top Header */}
       <div className="card border-0 rounded-4 shadow-sm bg-white p-4 mb-4" style={{ borderLeft: '6px solid #8FAF9A' }}>
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-          <div>
+          <div className="text-start">
             <span className="badge bg-rose-light text-rose fs-6 px-3 py-2 rounded-pill mb-2 border border-rose">
               <i className="bi bi-people-fill me-1"></i> Activity 6: Face Recognition
             </span>
             <h1 className="fw-extrabold text-rose mb-1">Familiar Face Recognition Challenge</h1>
-            <p className="text-secondary fs-4 mb-0">Identify the correct family member or friend from the photo options.</p>
+            <p className="text-secondary fs-4 mb-0">Identify your family members and loved ones from the photos.</p>
           </div>
 
-          {/* Level Switcher */}
-          <LevelSelector
-            activityKey="name_face"
-            currentLevel={level}
-            maxUnlockedLevel={maxUnlockedLevel}
-            onSelectLevel={startLevel}
-            speakInstruction={speakInstruction}
-          />
+          {/* Level Switcher (only shown when familiar faces are present) */}
+          {facesPool.length > 0 && (
+            <LevelSelector
+              activityKey="name_face"
+              currentLevel={level}
+              maxUnlockedLevel={maxUnlockedLevel}
+              onSelectLevel={(lvl) => startLevel(lvl, facesPoolRef.current)}
+              speakInstruction={speakInstruction}
+            />
+          )}
         </div>
       </div>
 
-      {stage === 'question' && targetPerson && (
-        <div className="card patient-card p-4 p-md-5 shadow-lg my-4 border-rose">
-          <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <span className="badge bg-rose-light text-rose border border-rose fs-5 px-3 py-2 rounded-pill">
-              Round {roundIndex + 1} of {cfg.rounds} — Level {level} ({cfg.diffName})
-            </span>
-            <span className="badge bg-secondary fs-5 px-3 py-2 rounded-pill">
-              Score: {score} pts | Mistakes: {mistakes}
-            </span>
+      {loading ? (
+        <div className="card patient-card text-center p-5 my-4 border-0 shadow-sm">
+          <div className="spinner-border text-primary mx-auto mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
+            <span className="visually-hidden">Loading...</span>
           </div>
+          <h3 className="fw-bold text-dark mb-1">Loading Your Familiar Faces...</h3>
+          <p className="text-secondary fs-5 mb-0">Checking your family photos and loved ones.</p>
+        </div>
+      ) : facesPool.length === 0 ? (
+        <div className="card patient-card text-center p-4 p-md-5 my-4 border-rose shadow-sm" style={{ borderTop: '6px solid #D4A5A5' }}>
+          <div className="mb-3">
+            <div className="rounded-circle d-inline-flex p-4 bg-rose-light text-rose mb-2 shadow-sm">
+              <i className="bi bi-people display-2"></i>
+            </div>
+          </div>
+          <h2 className="display-6 fw-extrabold text-dark mb-2">
+            No Familiar People Added Yet
+          </h2>
+          <p className="fs-4 text-secondary mb-4 mx-auto" style={{ maxWidth: '640px' }}>
+            Your caregiver hasn't uploaded or added any familiar family members or friends yet. 
+            To protect your comfort and privacy, we do not show random unknown people.
+          </p>
 
-          {/* Target Question Banner */}
-          <div className="bg-rose-light p-4 rounded-4 border border-rose mb-4 shadow-sm">
-            <h2 className="display-5 fw-extrabold text-rose mb-1">
-              Which photo is <span className="text-decoration-underline">{targetPerson.name}</span>?
-            </h2>
-            <p className="fs-3 text-secondary mb-0">
-              Relationship: <strong>{targetPerson.relationship}</strong>
-              {targetPerson.description && ` — “${targetPerson.description}”`}
+          <div className="alert alert-light border border-2 border-secondary-subtle d-inline-block text-start p-3 p-md-4 rounded-4 mb-4 shadow-sm" style={{ maxWidth: '600px', backgroundColor: '#FAF7F2' }}>
+            <div className="d-flex align-items-center gap-2 mb-2 text-dark fw-bold fs-5">
+              <i className="bi bi-info-circle-fill text-primary"></i>
+              <span>How to play this activity:</span>
+            </div>
+            <p className="text-secondary fs-6 mb-2">
+              Please ask your caregiver to log into the <strong>Caregiver Portal</strong> and add your family members, friends, or companions under <strong>Familiar Faces</strong>.
+            </p>
+            <p className="text-secondary fs-6 mb-0">
+              Once photos and names are added, this memory game will automatically activate with their faces!
             </p>
           </div>
 
-          {/* Feedback Banner */}
-          {feedback && (
-            <div className={`alert ${feedback.type === 'right' ? 'alert-success' : 'alert-danger'} fs-3 p-3 rounded-4 mb-4 fw-bold shadow-sm`}>
-              {feedback.message}
+          <div className="d-flex justify-content-center gap-3 flex-wrap">
+            <button 
+              onClick={() => navigate('/patient/activities')} 
+              className="btn patient-btn patient-btn-primary fs-4 px-4 py-3"
+            >
+              <i className="bi bi-arrow-left-circle me-2"></i> Back to Activities
+            </button>
+            <button 
+              onClick={() => navigate('/patient/familiar-faces')} 
+              className="btn patient-btn btn-outline-secondary fs-4 px-4 py-3"
+            >
+              <i className="bi bi-person-lines-fill me-2"></i> View Familiar Faces
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {stage === 'question' && targetPerson && (
+            <div className="card patient-card p-4 p-md-5 shadow-lg my-4 border-rose">
+              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <span className="badge bg-rose-light text-rose border border-rose fs-5 px-3 py-2 rounded-pill">
+                  Round {roundIndex + 1} of {cfg.rounds} — Level {level} ({cfg.diffName})
+                </span>
+                <span className="badge bg-secondary fs-5 px-3 py-2 rounded-pill">
+                  Score: {score} pts | Mistakes: {mistakes}
+                </span>
+              </div>
+
+              {/* Target Question Banner */}
+              <div className="bg-rose-light p-4 rounded-4 border border-rose mb-4 shadow-sm">
+                <h2 className="display-5 fw-extrabold text-rose mb-1">
+                  Which photo is <span className="text-decoration-underline">{targetPerson.name}</span>?
+                </h2>
+                <p className="fs-3 text-secondary mb-0">
+                  Relationship: <strong>{targetPerson.relationship}</strong>
+                  {targetPerson.description && ` — “${targetPerson.description}”`}
+                </p>
+              </div>
+
+              {/* Friendly Note if caregiver added only 1 person */}
+              {facesPool.length < 2 && (
+                <div className="alert alert-light border border-primary-subtle text-primary fs-5 rounded-4 mb-3">
+                  <i className="bi bi-lightbulb-fill me-2"></i>
+                  <strong>Friendly Tip:</strong> Your caregiver has added 1 familiar person. Ask your caregiver to add more family members or friends in the Caregiver Portal to unlock multi-choice quiz mode!
+                </div>
+              )}
+
+              {/* Feedback Banner */}
+              {feedback && (
+                <div className={`alert ${feedback.type === 'right' ? 'alert-success' : 'alert-danger'} fs-3 p-3 rounded-4 mb-4 fw-bold shadow-sm`}>
+                  {feedback.message}
+                </div>
+              )}
+
+              {/* Face Photo Choices Grid */}
+              <div className="row g-4 justify-content-center">
+                {faceChoices.map((faceChoice) => {
+                  const isSelected = selectedFaceId === faceChoice.id;
+                  const isCorrectChoice = faceChoice.id === targetPerson.id;
+
+                  let cardBorder = 'border-2 border-secondary';
+                  if (isSelected) {
+                    cardBorder = isCorrectChoice ? 'border-4 border-success shadow-lg scale-105' : 'border-4 border-danger shadow-sm';
+                  }
+
+                  const colClass = faceChoices.length === 1 ? 'col-10 col-md-5' : (cfg.numChoices === 6 ? 'col-6 col-md-4' : 'col-6 col-md-3');
+
+                  return (
+                    <div key={faceChoice.id} className={colClass}>
+                      <div
+                        onClick={() => handleFaceSelect(faceChoice)}
+                        className={`card patient-card p-3 cursor-pointer text-center transition-all h-100 ${cardBorder} ${
+                          isSelected && isCorrectChoice ? 'bg-success bg-opacity-10' : 'bg-white'
+                        }`}
+                        style={{ borderRadius: '20px' }}
+                      >
+                        <img
+                          src={faceChoice.photo_path}
+                          alt="Choice face"
+                          className="rounded-circle mx-auto mb-3 shadow-md"
+                          style={{
+                            width: faceChoices.length === 1 ? '180px' : (cfg.numChoices === 6 ? '130px' : '160px'),
+                            height: faceChoices.length === 1 ? '180px' : (cfg.numChoices === 6 ? '130px' : '160px'),
+                            objectFit: 'cover'
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className={`btn patient-btn w-100 fs-5 fw-bold ${
+                            isSelected
+                              ? isCorrectChoice ? 'patient-btn-success' : 'patient-btn-danger'
+                              : 'btn-outline-danger'
+                          }`}
+                        >
+                          {isSelected && isCorrectChoice ? '✓ Correct Person' : isSelected ? '✕ Wrong Person' : 'Tap Photo'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* Face Photo Choices Grid (4 or 6 options) */}
-          <div className="row g-4 justify-content-center">
-            {faceChoices.map((faceChoice) => {
-              const isSelected = selectedFaceId === faceChoice.id;
-              const isCorrectChoice = faceChoice.id === targetPerson.id;
+          {stage === 'result' && (() => {
+            const isPassing = mistakes <= 1;
+            const isDemoting = !isPassing && level > 1 && mistakes >= 3;
+            const adaptLevel = isPassing ? Math.min(10, level + 1) : (isDemoting ? Math.max(1, level - 1) : level);
 
-              let cardBorder = 'border-2 border-secondary';
-              if (isSelected) {
-                cardBorder = isCorrectChoice ? 'border-4 border-success shadow-lg scale-105' : 'border-4 border-danger shadow-sm';
-              }
+            return (
+              <div className="card patient-card border-success p-5 text-center shadow-lg my-4">
+                {isDemoting ? (
+                  <>
+                    <i className="bi bi-heart-fill display-1 text-rose mb-2"></i>
+                    <h2 className="fw-bold text-rose display-5">🌟 Wonderful Effort on Level {level}!</h2>
+                    <p className="fs-4 text-muted mt-1 mb-2">Every practice helps keep our memory active and strong. 💛</p>
+                  </>
+                ) : isPassing ? (
+                  <>
+                    <i className="bi bi-person-check-fill display-1 text-success mb-2"></i>
+                    <h2 className="fw-bold text-success display-5">🎉 Level {level} Face Recognition Complete! Great Job!</h2>
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-star-fill display-1 text-warning mb-2"></i>
+                    <h2 className="fw-bold text-primary display-5">💛 Good Try on Level {level}!</h2>
+                    <p className="fs-4 text-muted mt-1 mb-2">Let's practice this level once more to build confidence.</p>
+                  </>
+                )}
 
-              return (
-                <div key={faceChoice.id} className={cfg.numChoices === 6 ? 'col-6 col-md-4' : 'col-6 col-md-3'}>
-                  <div
-                    onClick={() => handleFaceSelect(faceChoice)}
-                    className={`card patient-card p-3 cursor-pointer text-center transition-all h-100 ${cardBorder} ${
-                      isSelected && isCorrectChoice ? 'bg-success bg-opacity-10' : 'bg-white'
-                    }`}
-                    style={{ borderRadius: '20px' }}
-                  >
-                    <img
-                      src={faceChoice.photo_path}
-                      alt="Choice face"
-                      className="rounded-circle mx-auto mb-3 shadow-md"
-                      style={{
-                        width: cfg.numChoices === 6 ? '130px' : '160px',
-                        height: cfg.numChoices === 6 ? '130px' : '160px',
-                        objectFit: 'cover'
-                      }}
-                    />
-                    <button
-                      type="button"
-                      className={`btn patient-btn w-100 fs-5 fw-bold ${
-                        isSelected
-                          ? isCorrectChoice ? 'patient-btn-success' : 'patient-btn-danger'
-                          : 'btn-outline-danger'
-                      }`}
-                    >
-                      {isSelected && isCorrectChoice ? '✓ Correct Person' : isSelected ? '✕ Wrong Person' : 'Tap Photo'}
-                    </button>
+                <p className="fs-3 fw-bold mt-2">Final Score: {score} pts | Total Mistakes: {mistakes}</p>
+
+                {mlResult && mlResult.recommendation && (
+                  <div className="alert alert-info fs-4 p-3 rounded-4 my-3">
+                    <i className="bi bi-info-circle-fill me-2"></i>
+                    {mlResult.recommendation.recommendation_reason || mlResult.recommendation.message}
                   </div>
+                )}
+
+                {isDemoting ? (
+                  <div className="alert alert-warning fs-4 p-3 rounded-4 my-3 fw-bold border-warning d-flex align-items-center justify-content-center">
+                    <i className="bi bi-arrow-repeat me-2 fs-3 text-warning"></i>
+                    {`Wonderful effort! Let's take a gentle step back to Level ${adaptLevel} to practice together! Returning in ${countdown}s...`}
+                  </div>
+                ) : isPassing ? (
+                  <div className="alert alert-success fs-4 p-3 rounded-4 my-3 fw-bold">
+                    <i className="bi bi-arrow-right-circle-fill me-2"></i>
+                    {level < 10 
+                      ? `Advancing to Level ${level + 1} automatically in ${countdown}s...` 
+                      : `Level 10 Mastered! Moving to Next Activity in ${countdown}s...`}
+                  </div>
+                ) : (
+                  <div className="alert alert-info fs-4 p-3 rounded-4 my-3 fw-bold">
+                    <i className="bi bi-arrow-clockwise me-2"></i>
+                    {`Let's practice Level ${level} together once more! Replaying in ${countdown}s...`}
+                  </div>
+                )}
+
+                <div className="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+                  {isDemoting ? (
+                    <>
+                      <button 
+                        onClick={handleNextLevelOrActivity} 
+                        className="btn patient-btn patient-btn-primary fs-3 px-5 py-3"
+                      >
+                        Let's Practice Level ${adaptLevel} Now 🌿
+                      </button>
+                      <button onClick={() => navigate('/patient/activities')} className="btn patient-btn btn-outline-secondary fs-4">
+                        All Activities
+                      </button>
+                    </>
+                  ) : isPassing ? (
+                    <>
+                      <button 
+                        onClick={handleNextLevelOrActivity} 
+                        className="btn patient-btn patient-btn-success fs-3 px-5 py-3"
+                      >
+                        {level < 10 ? `Go to Level ${level + 1} Now` : `Go to Next Activity Now`} <i className="bi bi-arrow-right-circle-fill ms-2"></i>
+                      </button>
+                      <button onClick={() => startLevel(level, facesPoolRef.current)} className="btn patient-btn btn-outline-secondary fs-4">
+                        Replay Level {level}
+                      </button>
+                      <button onClick={() => navigate('/patient/activities')} className="btn patient-btn patient-btn-primary fs-4">
+                        All Activities
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={handleNextLevelOrActivity} 
+                        className="btn patient-btn patient-btn-primary fs-3 px-5 py-3"
+                      >
+                        Practice Level {level} Again <i className="bi bi-arrow-repeat ms-2"></i>
+                      </button>
+                      <button onClick={() => navigate('/patient/activities')} className="btn patient-btn btn-outline-secondary fs-4">
+                        All Activities
+                      </button>
+                    </>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </div>
+            );
+          })()}
+        </>
       )}
-
-      {stage === 'result' && (() => {
-        const isPassing = mistakes <= 1;
-        const isDemoting = !isPassing && level > 1 && mistakes >= 3;
-        const adaptLevel = isPassing ? Math.min(10, level + 1) : (isDemoting ? Math.max(1, level - 1) : level);
-
-        return (
-          <div className="card patient-card border-success p-5 text-center shadow-lg my-4">
-            {isDemoting ? (
-              <>
-                <i className="bi bi-heart-fill display-1 text-rose mb-2"></i>
-                <h2 className="fw-bold text-rose display-5">🌟 Wonderful Effort on Level {level}!</h2>
-                <p className="fs-4 text-muted mt-1 mb-2">Every practice helps keep our memory active and strong. 💛</p>
-              </>
-            ) : isPassing ? (
-              <>
-                <i className="bi bi-person-check-fill display-1 text-success mb-2"></i>
-                <h2 className="fw-bold text-success display-5">🎉 Level {level} Face Recognition Complete! Great Job!</h2>
-              </>
-            ) : (
-              <>
-                <i className="bi bi-star-fill display-1 text-warning mb-2"></i>
-                <h2 className="fw-bold text-primary display-5">💛 Good Try on Level {level}!</h2>
-                <p className="fs-4 text-muted mt-1 mb-2">Let's practice this level once more to build confidence.</p>
-              </>
-            )}
-
-            <p className="fs-3 fw-bold mt-2">Final Score: {score} pts | Total Mistakes: {mistakes}</p>
-
-            {mlResult && mlResult.recommendation && (
-              <div className="alert alert-info fs-4 p-3 rounded-4 my-3">
-                <i className="bi bi-info-circle-fill me-2"></i>
-                {mlResult.recommendation.recommendation_reason || mlResult.recommendation.message}
-              </div>
-            )}
-
-            {isDemoting ? (
-              <div className="alert alert-warning fs-4 p-3 rounded-4 my-3 fw-bold border-warning d-flex align-items-center justify-content-center">
-                <i className="bi bi-arrow-repeat me-2 fs-3 text-warning"></i>
-                {`Wonderful effort! Let's take a gentle step back to Level ${adaptLevel} to practice together! Returning in ${countdown}s...`}
-              </div>
-            ) : isPassing ? (
-              <div className="alert alert-success fs-4 p-3 rounded-4 my-3 fw-bold">
-                <i className="bi bi-arrow-right-circle-fill me-2"></i>
-                {level < 10 
-                  ? `Advancing to Level ${level + 1} automatically in ${countdown}s...` 
-                  : `Level 10 Mastered! Moving to Next Activity in ${countdown}s...`}
-              </div>
-            ) : (
-              <div className="alert alert-info fs-4 p-3 rounded-4 my-3 fw-bold">
-                <i className="bi bi-arrow-clockwise me-2"></i>
-                {`Let's practice Level ${level} together once more! Replaying in ${countdown}s...`}
-              </div>
-            )}
-
-            <div className="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-              {isDemoting ? (
-                <>
-                  <button 
-                    onClick={handleNextLevelOrActivity} 
-                    className="btn patient-btn patient-btn-primary fs-3 px-5 py-3"
-                  >
-                    Let's Practice Level ${adaptLevel} Now 🌿
-                  </button>
-                  <button onClick={() => navigate('/patient/activities')} className="btn patient-btn btn-outline-secondary fs-4">
-                    All Activities
-                  </button>
-                </>
-              ) : isPassing ? (
-                <>
-                  <button 
-                    onClick={handleNextLevelOrActivity} 
-                    className="btn patient-btn patient-btn-success fs-3 px-5 py-3"
-                  >
-                    {level < 10 ? `Go to Level ${level + 1} Now` : `Go to Next Activity Now`} <i className="bi bi-arrow-right-circle-fill ms-2"></i>
-                  </button>
-                  <button onClick={() => startLevel(level)} className="btn patient-btn btn-outline-secondary fs-4">
-                    Replay Level {level}
-                  </button>
-                  <button onClick={() => navigate('/patient/activities')} className="btn patient-btn patient-btn-primary fs-4">
-                    All Activities
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button 
-                    onClick={handleNextLevelOrActivity} 
-                    className="btn patient-btn patient-btn-primary fs-3 px-5 py-3"
-                  >
-                    Practice Level {level} Again <i className="bi bi-arrow-repeat ms-2"></i>
-                  </button>
-                  <button onClick={() => navigate('/patient/activities')} className="btn patient-btn btn-outline-secondary fs-4">
-                    All Activities
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 };
