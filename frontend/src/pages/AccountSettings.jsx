@@ -151,10 +151,10 @@ const AccountSettings = () => {
     <div className="container py-4">
       <div className="mb-4">
         <span className="badge bg-rose-light text-rose border border-rose fs-6 px-3 py-2 rounded-pill mb-2">
-          Account Management
+          {t('accountManagement', 'Account Management')}
         </span>
         <h1 className="fw-bold text-dark mb-1">
-          {user?.role === 'caregiver' ? 'Caregiver Account Settings' : 'Patient Account Settings'}
+          {user?.role === 'caregiver' ? t('caregiverAccountSettings', 'Caregiver Account Settings') : t('patientAccountSettings', 'Patient Account Settings')}
         </h1>
       </div>
 
@@ -163,21 +163,23 @@ const AccountSettings = () => {
         <div className="col-lg-6">
           <div className="card border-rose rounded-4 p-4 shadow-sm bg-white mb-4" style={{ borderLeft: '6px solid #4B3F3F' }}>
             <h3 className="fw-bold text-rose mb-3">
-              <i className="bi bi-person-badge-fill me-2"></i> Account Details
+              <i className="bi bi-person-badge-fill me-2"></i> {t('accountDetails', 'Account Details')}
             </h3>
 
             <div className="p-3 bg-rose-light rounded-3 mb-4 border border-rose">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-secondary fs-6">Account Role:</span>
-                <span className="badge bg-rose-light text-rose border border-rose fs-6 text-capitalize fw-bold">{user?.role}</span>
+                <span className="text-secondary fs-6">{t('accountRole', 'Account Role:')}</span>
+                <span className="badge bg-rose-light text-rose border border-rose fs-6 text-capitalize fw-bold">
+                  {user?.role === 'patient' ? t('patient', 'Patient') : user?.role === 'caregiver' ? t('caregiver', 'Caregiver') : user?.role}
+                </span>
               </div>
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-secondary fs-6">Registered Email:</span>
+                <span className="text-secondary fs-6">{t('registeredEmail', 'Registered Email:')}</span>
                 <strong className="text-dark fs-6">{user?.email}</strong>
               </div>
               {isCaregiver && user?.caregiver_code && (
                 <div className="d-flex justify-content-between align-items-center mb-2">
-                  <span className="text-secondary fs-6">Caregiver ID Code:</span>
+                  <span className="text-secondary fs-6">{t('caregiverIdCode', 'Caregiver ID Code:')}</span>
                   <span className="badge bg-warning text-dark border border-warning fs-6 notranslate" translate="no">
                     {user.caregiver_code}
                   </span>
@@ -185,7 +187,7 @@ const AccountSettings = () => {
               )}
               {isCaregiver && (
                 <div className="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-rose">
-                  <span className="text-secondary fs-6">Active Selected Patient:</span>
+                  <span className="text-secondary fs-6">{t('activeSelectedPatient', 'Active Selected Patient:')}</span>
                   {patients.length > 0 ? (
                     <select
                       className="form-select form-select-sm w-auto rounded-3 fw-bold text-dark border-rose shadow-sm"
@@ -193,25 +195,25 @@ const AccountSettings = () => {
                       onChange={(e) => setSelectedPatientId(Number(e.target.value))}
                     >
                       {patients.map(p => (
-                        <option key={p.id} value={p.id}>👤 {p.name} (Age {p.age || 'N/A'})</option>
+                        <option key={p.id} value={p.id}>👤 {p.name} ({t('age', 'Age')} {p.age || 'N/A'})</option>
                       ))}
                     </select>
                   ) : (
-                    <span className="text-muted fs-6">No connected patients</span>
+                    <span className="text-muted fs-6">{t('noConnectedPatients', 'No connected patients')}</span>
                   )}
                 </div>
               )}
               {!isCaregiver && (
                 <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-secondary fs-6">Caregiver Link:</span>
+                  <span className="text-secondary fs-6">{t('caregiverLink', 'Caregiver Link:')}</span>
                   <span className={`badge fs-6 ${
                     connStatus?.status === 'accepted' ? 'bg-success' :
                     connStatus?.status === 'pending' ? 'bg-warning text-dark' :
                     connStatus?.status === 'rejected' ? 'bg-danger' : 'bg-secondary'
                   }`}>
-                    {connStatus?.status === 'accepted' ? `Connected (${connStatus.caregiver_name})` :
-                     connStatus?.status === 'pending' ? 'Pending Approval' :
-                     connStatus?.status === 'rejected' ? 'Declined' : 'Not Connected'}
+                    {connStatus?.status === 'accepted' ? `${t('connectedStatus', 'Connected')} (${connStatus.caregiver_name})` :
+                     connStatus?.status === 'pending' ? t('pendingApproval', 'Pending Approval') :
+                     connStatus?.status === 'rejected' ? t('declinedStatus', 'Declined') : t('notConnectedStatus', 'Not Connected')}
                   </span>
                 </div>
               )}
@@ -230,7 +232,7 @@ const AccountSettings = () => {
 
             <form onSubmit={handleUpdateProfile}>
               <div className="mb-3">
-                <label className="form-label fw-bold fs-6">Full Name</label>
+                <label className="form-label fw-bold fs-6">{t('fullName', 'Full Name')}</label>
                 <input 
                   type="text" 
                   className="form-control form-control-lg fs-6 rounded-3 border-rose"
@@ -241,7 +243,7 @@ const AccountSettings = () => {
               </div>
 
               <div className="mb-4">
-                <label className="form-label fw-bold fs-6">Age</label>
+                <label className="form-label fw-bold fs-6">{t('age', 'Age')}</label>
                 <input 
                   type="number" 
                   className="form-control form-control-lg fs-6 rounded-3 border-rose"
@@ -256,7 +258,7 @@ const AccountSettings = () => {
                 disabled={profileLoading} 
                 className="btn patient-btn-primary w-100 py-3 fw-bold fs-5 rounded-3"
               >
-                {profileLoading ? 'Saving...' : 'Save Profile Changes'}
+                {profileLoading ? t('savingWord', 'Saving...') : t('saveProfileChanges', 'Save Profile Changes')}
               </button>
             </form>
           </div>
@@ -265,7 +267,7 @@ const AccountSettings = () => {
           {!isCaregiver && (
             <div className="card border-rose rounded-4 p-4 shadow-sm bg-white mb-4" style={{ borderLeft: '6px solid #D98A6C' }}>
               <h3 className="fw-bold text-rose mb-3 fs-5">
-                <i className="bi bi-people-fill me-2"></i> Caregiver Connection
+                <i className="bi bi-people-fill me-2"></i> {t('caregiverConnection', 'Caregiver Connection')}
               </h3>
 
               {cgMsg && (
@@ -283,34 +285,34 @@ const AccountSettings = () => {
                 <div className="p-3 bg-success-subtle rounded-3 border border-success-subtle d-flex justify-content-between align-items-center">
                   <div>
                     <strong className="text-success fs-6 d-block">
-                      <i className="bi bi-check-circle-fill me-1"></i> Connected to {connStatus.caregiver_name}
+                      <i className="bi bi-check-circle-fill me-1"></i> {t('connectedTo', 'Connected to')} {connStatus.caregiver_name}
                     </strong>
-                    <span className="text-secondary small">Caregiver Code: {connStatus.caregiver_code || 'Linked'}</span>
+                    <span className="text-secondary small">{t('caregiverCodeLabel', 'Caregiver Code:')} <span className="notranslate" translate="no">{connStatus.caregiver_code || 'Linked'}</span></span>
                   </div>
                   <button
                     onClick={handleDisconnectCaregiver}
                     className="btn btn-sm btn-outline-danger rounded-pill px-3"
                   >
-                    Disconnect
+                    {t('disconnect', 'Disconnect')}
                   </button>
                 </div>
               ) : connStatus?.status === 'pending' ? (
                 <div className="p-3 bg-warning-subtle rounded-3 border border-warning-subtle">
                   <strong className="text-warning-emphasis fs-6 d-block">
-                    <i className="bi bi-hourglass-split me-1"></i> Connection Request Pending
+                    <i className="bi bi-hourglass-split me-1"></i> {t('connectionRequestPending', 'Connection Request Pending')}
                   </strong>
                   <span className="text-secondary small">
-                    Sent to {connStatus.caregiver_name} {connStatus.caregiver_code ? `(${connStatus.caregiver_code})` : ''}. Waiting for approval.
+                    {t('sentTo', 'Sent to')} {connStatus.caregiver_name} {connStatus.caregiver_code ? `(${connStatus.caregiver_code})` : ''}. {t('waitingForApproval', 'Waiting for approval.')}
                   </span>
                 </div>
               ) : (
                 <form onSubmit={handleConnectCaregiver}>
                   {connStatus?.status === 'rejected' && (
                     <div className="alert alert-danger p-2 mb-3 small rounded-3">
-                      <i className="bi bi-exclamation-circle me-1"></i> Your previous request was declined. You can enter a new Caregiver Code below.
+                      <i className="bi bi-exclamation-circle me-1"></i> {t('previousRequestDeclined', 'Your previous request was declined. You can enter a new Caregiver Code below.')}
                     </div>
                   )}
-                  <label className="form-label fw-bold fs-6">Caregiver ID Code</label>
+                  <label className="form-label fw-bold fs-6">{t('caregiverIdCode', 'Caregiver ID Code')}</label>
                   <div className="input-group mb-2">
                     <input
                       type="text"
@@ -326,10 +328,10 @@ const AccountSettings = () => {
                       disabled={cgLoading || !cgCodeInput.trim()}
                       className="btn patient-btn-primary px-3 fs-6"
                     >
-                      {cgLoading ? 'Sending...' : 'Connect'}
+                      {cgLoading ? t('savingWord', 'Sending...') : t('connect', 'Connect')}
                     </button>
                   </div>
-                  <small className="text-muted">Ask your caregiver for their unique Caregiver ID Code.</small>
+                  <small className="text-muted">{t('askCaregiverForCode', 'Ask your caregiver for their unique Caregiver ID Code.')}</small>
                 </form>
               )}
             </div>
@@ -405,7 +407,7 @@ const AccountSettings = () => {
 
           <div className="card border-rose rounded-4 p-4 shadow-sm bg-white" style={{ borderLeft: '6px solid #D4A5A5' }}>
             <h3 className="fw-bold text-rose mb-3">
-              <i className="bi bi-shield-lock-fill me-2"></i> Change Password
+              <i className="bi bi-shield-lock-fill me-2"></i> {t('changePassword', 'Change Password')}
             </h3>
 
             {passwordMsg && (
@@ -421,12 +423,12 @@ const AccountSettings = () => {
 
             <form onSubmit={handleChangePassword}>
               <div className="mb-3 position-relative">
-                <label className="form-label fw-bold fs-6">Current Password</label>
+                <label className="form-label fw-bold fs-6">{t('currentPassword', 'Current Password')}</label>
                 <div className="input-group">
                   <input 
                     type={showCurrentPassword ? "text" : "password"} 
                     className="form-control form-control-lg fs-6 rounded-start-3 border-rose"
-                    placeholder="Enter current password"
+                    placeholder={t('enterCurrentPassword', 'Enter current password')}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
@@ -443,12 +445,12 @@ const AccountSettings = () => {
               </div>
 
               <div className="mb-3 position-relative">
-                <label className="form-label fw-bold fs-6">New Password</label>
+                <label className="form-label fw-bold fs-6">{t('newPassword', 'New Password')}</label>
                 <div className="input-group">
                   <input 
                     type={showNewPassword ? "text" : "password"} 
                     className="form-control form-control-lg fs-6 rounded-start-3 border-rose"
-                    placeholder="At least 6 characters"
+                    placeholder={t('atLeast6Chars', 'At least 6 characters')}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
@@ -465,12 +467,12 @@ const AccountSettings = () => {
               </div>
 
               <div className="mb-4 position-relative">
-                <label className="form-label fw-bold fs-6">Confirm New Password</label>
+                <label className="form-label fw-bold fs-6">{t('confirmNewPassword', 'Confirm New Password')}</label>
                 <div className="input-group">
                   <input 
                     type={showConfirmPassword ? "text" : "password"} 
                     className="form-control form-control-lg fs-6 rounded-start-3 border-rose"
-                    placeholder="Re-type new password"
+                    placeholder={t('retypeNewPassword', 'Re-type new password')}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -491,7 +493,7 @@ const AccountSettings = () => {
                 disabled={passwordLoading} 
                 className="btn patient-btn-secondary w-100 py-3 fw-bold fs-5 rounded-3"
               >
-                {passwordLoading ? 'Updating Password...' : 'Update Password'}
+                {passwordLoading ? t('updatingPassword', 'Updating Password...') : t('updatePassword', 'Update Password')}
               </button>
             </form>
           </div>
