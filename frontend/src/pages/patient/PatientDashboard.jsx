@@ -160,10 +160,10 @@ const PatientDashboard = () => {
             </div>
             <div>
               <h3 className="fw-bold text-dark mb-1 fs-4">
-                {connectionStatus?.status === 'rejected' ? 'Re-connect with Your Caregiver' : 'Connect with a Caregiver'}
+                {connectionStatus?.status === 'rejected' ? t('reconnectCaregiver', 'Re-connect with Your Caregiver') : t('connectCaregiver', 'Connect with a Caregiver')}
               </h3>
               <p className="text-secondary fs-6 mb-0">
-                Enter your caregiver or family member's unique Caregiver ID Code (e.g., <strong>MC-CG-1001</strong>) to send a connection request.
+                {t('enterCaregiverCodeHelp', "Enter your caregiver or family member's unique Caregiver ID Code (e.g., MC-CG-1001) to send a connection request.")}
               </p>
             </div>
           </div>
@@ -188,7 +188,7 @@ const PatientDashboard = () => {
                 <input
                   type="text"
                   className="form-control form-control-lg fs-5 border-rose"
-                  placeholder="Enter Caregiver Code (e.g. MC-CG-1001)"
+                  placeholder={t('askCaregiverCode', 'Ask your caregiver for their ID code to connect.')}
                   value={caregiverCodeInput}
                   onChange={(e) => setCaregiverCodeInput(e.target.value.toUpperCase())}
                   disabled={connectLoading}
@@ -203,9 +203,9 @@ const PatientDashboard = () => {
                 className="btn patient-btn-primary btn-lg w-100 py-3 fw-bold fs-5 rounded-3 shadow-sm"
               >
                 {connectLoading ? (
-                  <span><span className="spinner-border spinner-border-sm me-2" role="status"></span>Sending...</span>
+                  <span><span className="spinner-border spinner-border-sm me-2" role="status"></span>{t('creatingAccount', 'Sending...')}</span>
                 ) : (
-                  <span><i className="bi bi-send-fill me-2"></i>Send Request</span>
+                  <span><i className="bi bi-send-fill me-2"></i>{t('sendRequest', 'Send Request')}</span>
                 )}
               </button>
             </div>
@@ -224,7 +224,7 @@ const PatientDashboard = () => {
               <div>
                 <div className="d-flex align-items-center gap-2 mb-1">
                   <span className="badge bg-rose-light text-rose fs-6 px-3 py-1 rounded-pill border border-rose">
-                    Next Activity For You
+                    {t('nextActivityForYou', 'Next Activity For You')}
                   </span>
                   <span className="badge bg-secondary fs-6 px-3 py-1 rounded-pill">
                     {recommendation.stage || 'Personalized Plan'}
@@ -237,7 +237,7 @@ const PatientDashboard = () => {
                   “{recommendation.recommendation_reason || "Let's practice your cognitive exercises today."}”
                 </p>
                 <div className="d-flex align-items-center gap-2 text-muted fs-6">
-                  <span>Recommended Difficulty:</span>
+                  <span>{t('recommendedDifficulty', 'Recommended Difficulty')}:</span>
                   <span className={`badge ${
                     recommendation.recommended_difficulty === 'Hard' ? 'bg-danger' :
                     recommendation.recommended_difficulty === 'Medium' ? 'bg-warning text-dark' : 'bg-success'
@@ -264,7 +264,7 @@ const PatientDashboard = () => {
               }}
               className="btn patient-btn patient-btn-primary px-4 py-3 align-self-md-center shadow-sm"
             >
-              Start Activity <i className="bi bi-play-circle-fill ms-2"></i>
+              {t('startActivity', 'Start Activity')} <i className="bi bi-play-circle-fill ms-2"></i>
             </button>
           </div>
         </div>

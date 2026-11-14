@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useVoice } from '../../context/VoiceContext';
+import { useLanguage } from '../../context/LanguageContext';
 import HelpButton from '../../components/HelpButton';
 import { sessionsAPI } from '../../services/api';
 
 const PatientProgress = () => {
   const { user } = useAuth();
   const { speakInstruction } = useVoice();
+  const { t } = useLanguage();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 

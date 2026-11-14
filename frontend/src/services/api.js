@@ -180,4 +180,11 @@ export const familiarPeopleAPI = {
   delete: (id) => api.delete(`/familiar-people/${id}`)
 };
 
+export const translateAPI = {
+  translate: (text, targetLang, sourceLang = 'en') =>
+    api.post('/translate', { text, target_lang: targetLang, source_lang: sourceLang }),
+  translateBatch: (texts, targetLang, sourceLang = 'en') =>
+    api.post('/translate', { texts, target_lang: targetLang, source_lang: sourceLang })
+};
+
 export default api;

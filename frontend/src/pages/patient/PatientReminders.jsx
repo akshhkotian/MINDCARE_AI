@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useVoice } from '../../context/VoiceContext';
+import { useLanguage } from '../../context/LanguageContext';
 import HelpButton from '../../components/HelpButton';
 import { remindersAPI } from '../../services/api';
 
 const PatientReminders = () => {
   const { user } = useAuth();
   const { speakInstruction } = useVoice();
+  const { t } = useLanguage();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
@@ -82,9 +84,9 @@ const PatientReminders = () => {
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
           <div>
             <span className="badge bg-rose-light text-rose fs-6 px-3 py-2 rounded-pill mb-2 border border-rose">
-              <i className="bi bi-bell-fill me-1"></i> Patient Daily Schedule
+              <i className="bi bi-bell-fill me-1"></i> {t('patientDailySchedule', 'Patient Daily Schedule')}
             </span>
-            <h1 className="fw-extrabold text-rose mb-0">Your Daily Reminders</h1>
+            <h1 className="fw-extrabold text-rose mb-0">{t('yourDailyReminders', 'Your Daily Reminders')}</h1>
           </div>
           <div className="d-flex flex-wrap gap-2">
             <button
@@ -92,7 +94,7 @@ const PatientReminders = () => {
               onClick={handleReadOutLoud}
               className="btn btn-outline-danger btn-lg fw-bold rounded-pill px-4 py-2"
             >
-              <i className="bi bi-volume-up-fill me-2"></i> Read Out Loud
+              <i className="bi bi-volume-up-fill me-2"></i> {t('readOutLoud', 'Read Out Loud')}
             </button>
           </div>
         </div>
@@ -106,26 +108,26 @@ const PatientReminders = () => {
             onClick={() => setFilter('All')}
             className={`reminder-filter-tab ${filter === 'All' ? 'active' : ''}`}
           >
-            All ({reminders.length})
+            {t('allFilter', 'All')} ({reminders.length})
           </button>
           <button
             type="button"
             onClick={() => setFilter('Pending')}
             className={`reminder-filter-tab ${filter === 'Pending' ? 'active' : ''}`}
           >
-            Pending ({pendingCount})
+            {t('pendingFilter', 'Pending')} ({pendingCount})
           </button>
           <button
             type="button"
             onClick={() => setFilter('Completed')}
             className={`reminder-filter-tab ${filter === 'Completed' ? 'active' : ''}`}
           >
-            Completed ({completedCount})
+            {t('completedFilter', 'Completed')} ({completedCount})
           </button>
         </div>
 
         <span className="fs-5 text-secondary">
-          Showing <strong>{filteredReminders.length}</strong> {filter.toLowerCase()} reminders
+          {t('showingWord', 'Showing')} <strong>{filteredReminders.length}</strong> {filter === 'All' ? t('allRemindersLabel', 'all reminders') : filter === 'Pending' ? t('pendingRemindersLabel', 'pending reminders') : t('completedRemindersLabel', 'completed reminders')}
         </span>
       </div>
 
@@ -133,23 +135,23 @@ const PatientReminders = () => {
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary fs-2" role="status"></div>
-          <p className="mt-3 text-muted fs-4">Loading your daily schedule...</p>
+          <p className="mt-3 text-muted fs-4">{t('loadingDailySchedule', 'Loading your daily schedule...')}</p>
         </div>
       ) : filteredReminders.length === 0 ? (
         <div className="card border-0 rounded-4 p-5 text-center my-4 bg-white shadow-sm">
           <i className="bi bi-calendar2-check display-1 text-secondary mb-3"></i>
-          <h2 className="fw-bold text-dark mb-2">No Reminders Scheduled</h2>
+          <h2 className="fw-bold text-dark mb-2">{t('noRemindersScheduled', 'No Reminders Scheduled')}</h2>
           {filter === 'Completed' ? (
             <p className="fs-4 text-muted max-w-lg mx-auto mt-2 mb-0">
-              You have not completed any reminders yet today.
+              {t('noCompletedRemindersToday', 'You have not completed any reminders yet today.')}
             </p>
           ) : filter === 'Pending' ? (
             <p className="fs-4 text-muted max-w-lg mx-auto mt-2 mb-0">
-              Great news! All your daily tasks are completed.
+              {t('allTasksCompleted', 'Great news! All your daily tasks are completed.')}
             </p>
           ) : (
             <p className="fs-4 text-muted max-w-lg mx-auto mt-2 mb-0">
-              Your caregiver has not added any reminders yet. Once added by your caregiver, they will appear here.
+              {t('caregiverNotAddedReminders', 'Your caregiver has not added any reminders yet. Once added by your caregiver, they will appear here.')}
             </p>
           )}
         </div>

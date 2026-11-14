@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useVoice } from '../../context/VoiceContext';
+import { useLanguage } from '../../context/LanguageContext';
 import HelpButton from '../../components/HelpButton';
 import { memoryAPI } from '../../services/api';
 
 const PatientMemoryAssistance = () => {
   const { user } = useAuth();
   const { speakInstruction } = useVoice();
+  const { t } = useLanguage();
   const [memoryItems, setMemoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,9 +45,9 @@ const PatientMemoryAssistance = () => {
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
           <div>
             <span className="badge bg-rose-light text-rose fs-6 px-3 py-2 rounded-pill mb-2 border border-rose">
-              <i className="bi bi-journal-bookmark-fill me-1"></i> Patient Memory Cards
+              <i className="bi bi-journal-bookmark-fill me-1"></i> {t('patientMemoryCardsBadge', 'Patient Memory Cards')}
             </span>
-            <h1 className="fw-extrabold text-rose mb-1">Memory Assistance Cards</h1>
+            <h1 className="fw-extrabold text-rose mb-1">{t('memoryAssistanceCardsTitle', 'Memory Assistance Cards')}</h1>
           </div>
         </div>
       </div>
@@ -57,8 +59,8 @@ const PatientMemoryAssistance = () => {
       ) : memoryItems.length === 0 ? (
         <div className="card patient-card p-5 text-center my-4 bg-white shadow-sm">
           <i className="bi bi-journal-x display-1 text-muted mb-3"></i>
-          <h2 className="fw-bold text-dark">No Memory Cards Yet</h2>
-          <p className="fs-4 text-muted">Your caregiver will add family contacts and notes here.</p>
+          <h2 className="fw-bold text-dark">{t('noMemoryCardsYet', 'No Memory Cards Yet')}</h2>
+          <p className="fs-4 text-muted">{t('caregiverAddNotesMsg', 'Your caregiver will add family contacts and notes here.')}</p>
         </div>
       ) : (
         <div className="row g-4">
@@ -79,7 +81,7 @@ const PatientMemoryAssistance = () => {
                   onClick={() => speakInstruction(`${item.title}. ${item.description}`)}
                   className="btn btn-outline-danger fw-bold rounded-pill py-2 text-rose fs-5"
                 >
-                  <i className="bi bi-volume-up-fill me-2"></i> Read Out Loud
+                  <i className="bi bi-volume-up-fill me-2"></i> {t('readOutLoud', 'Read Out Loud')}
                 </button>
               </div>
             </div>

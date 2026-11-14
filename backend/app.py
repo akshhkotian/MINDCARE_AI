@@ -16,6 +16,7 @@ from routes.assistance import assistance_bp
 from routes.memory import memory_bp
 from routes.caregiver_requests import caregiver_requests_bp
 from routes.familiar_people import familiar_people_bp
+from routes.translate import translate_bp
 
 def create_app():
     static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
@@ -45,6 +46,7 @@ def create_app():
     app.register_blueprint(memory_bp, url_prefix='/api/memory')
     app.register_blueprint(caregiver_requests_bp, url_prefix='/api/caregiver-requests')
     app.register_blueprint(familiar_people_bp, url_prefix='/api/familiar-people')
+    app.register_blueprint(translate_bp, url_prefix='/api/translate')
 
     @app.route('/api/patients/<int:patient_id>/performance-profile', methods=['GET'])
     def get_patient_profile_alias(patient_id):
