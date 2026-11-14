@@ -227,14 +227,14 @@ const PatientDashboard = () => {
                     {t('nextActivityForYou', 'Next Activity For You')}
                   </span>
                   <span className="badge bg-secondary fs-6 px-3 py-1 rounded-pill">
-                    {recommendation.stage || 'Personalized Plan'}
+                    {recommendation.stage ? t(recommendation.stage, recommendation.stage) : t('personalizedPlan', 'Personalized Plan')}
                   </span>
                 </div>
                 <h2 className="fw-bold text-dark mb-1">
-                  {recommendation.activity_name || 'Sequence Memory'}
+                  {recommendation.activity_name ? t(recommendation.activity_name, recommendation.activity_name) : t('sequenceMemory', 'Sequence Memory')}
                 </h2>
                 <p className="text-secondary fs-5 mb-1">
-                  “{recommendation.recommendation_reason || "Let's practice your cognitive exercises today."}”
+                  “{recommendation.recommendation_reason ? t(recommendation.recommendation_reason, recommendation.recommendation_reason) : t('letsPracticeCognitive', "Let's practice your cognitive exercises today.")}”
                 </p>
                 <div className="d-flex align-items-center gap-2 text-muted fs-6">
                   <span>{t('recommendedDifficulty', 'Recommended Difficulty')}:</span>
@@ -242,7 +242,7 @@ const PatientDashboard = () => {
                     recommendation.recommended_difficulty === 'Hard' ? 'bg-danger' :
                     recommendation.recommended_difficulty === 'Medium' ? 'bg-warning text-dark' : 'bg-success'
                   }`}>
-                    {recommendation.recommended_difficulty || 'Easy'}
+                    {recommendation.recommended_difficulty === 'Hard' ? t('hard', 'Hard') : recommendation.recommended_difficulty === 'Medium' ? t('medium', 'Medium') : t('easy', 'Easy')}
                   </span>
                 </div>
               </div>
