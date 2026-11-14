@@ -130,7 +130,7 @@ const ActivitySelection = () => {
                         recLevel === 'Hard' ? 'bg-danger' :
                         recLevel === 'Medium' ? 'bg-warning text-dark' : 'bg-success'
                       } fs-6 px-3 py-1 rounded-pill`}>
-                        {t('adaptive', 'Adaptive')}: {recLevel === 'Hard' ? t('hard', 'Hard') : recLevel === 'Medium' ? t('medium', 'Medium') : t('easy', 'Easy')}
+                        {recLevel === 'Hard' ? t('hard', 'Hard') : recLevel === 'Medium' ? t('medium', 'Medium') : t('easy', 'Easy')}
                       </span>
                     </div>
                     <p className="text-muted fs-5 mb-4">{act.description}</p>
