@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 const LevelSelector = ({
   activityKey,
@@ -8,11 +9,12 @@ const LevelSelector = ({
   totalLevels = 10,
   speakInstruction
 }) => {
+  const { t } = useLanguage();
   const [warning, setWarning] = useState(null);
 
   const handleLevelClick = (lvlNum) => {
     if (lvlNum > maxUnlockedLevel) {
-      const msg = `⚠️ Level ${lvlNum} is locked! Please complete Level ${maxUnlockedLevel} first.`;
+      const msg = `⚠️ ${t('lvlShort', 'Lvl')} ${lvlNum} ${t('isLocked', 'is locked!')} ${t('completeLevelFirst', 'Please complete Level')} ${maxUnlockedLevel} ${t('firstWord', 'first.')}`;
       setWarning(msg);
       if (speakInstruction) {
         speakInstruction(`Level ${lvlNum} is locked. Please complete Level ${maxUnlockedLevel} first to unlock it.`);
@@ -63,7 +65,7 @@ const LevelSelector = ({
             >
               {!isUnlocked && <i className="bi bi-lock-fill text-muted fs-6"></i>}
               {isUnlocked && isCurrent && <i className="bi bi-play-fill fs-6"></i>}
-              Lvl {lvlNum}
+              {t('lvlShort', 'Lvl')} {lvlNum}
             </button>
           );
         })}

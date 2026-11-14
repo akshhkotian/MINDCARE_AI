@@ -11,7 +11,7 @@ const getActivityConfig = (t) => [
     icon: 'bi-grid-3x3-gap-fill',
     color: '#4B3F3F',
     route: '/patient/activities/matching',
-    description: 'Find matching hidden pairs of cards.'
+    description: t('descMemoryMatching', 'Find matching hidden pairs of cards.')
   },
   {
     id: 2,
@@ -19,7 +19,7 @@ const getActivityConfig = (t) => [
     icon: 'bi-image-fill',
     color: '#D4A5A5',
     route: '/patient/activities/picture-recall',
-    description: 'Look at pictures and recall what was shown.'
+    description: t('descPictureRecall', 'Look at pictures and recall what was shown.')
   },
   {
     id: 3,
@@ -27,7 +27,7 @@ const getActivityConfig = (t) => [
     icon: 'bi-123',
     color: '#C9B7A7',
     route: '/patient/activities/sequence',
-    description: 'Remember and repeat the light-up sequence.'
+    description: t('descSequenceMemory', 'Remember and repeat the light-up sequence.')
   },
   {
     id: 4,
@@ -35,7 +35,7 @@ const getActivityConfig = (t) => [
     icon: 'bi-search',
     color: '#4B3F3F',
     route: '/patient/activities/object-recognition',
-    description: 'Identify familiar household objects from photos.'
+    description: t('descObjectRecognition', 'Identify familiar household objects from photos.')
   },
   {
     id: 5,
@@ -43,7 +43,7 @@ const getActivityConfig = (t) => [
     icon: 'bi-file-text-fill',
     color: '#D4A5A5',
     route: '/patient/activities/word-memory',
-    description: 'Memorize short word lists and identify them.'
+    description: t('descWordMemory', 'Memorize short word lists and identify them.')
   },
   {
     id: 6,
@@ -51,7 +51,7 @@ const getActivityConfig = (t) => [
     icon: 'bi-person-bounding-box',
     color: '#C9B7A7',
     route: '/patient/activities/name-face',
-    description: 'Match familiar faces with their names.'
+    description: t('descNameFaceRecognition', 'Match familiar faces with their names.')
   },
   {
     id: 7,
@@ -59,7 +59,7 @@ const getActivityConfig = (t) => [
     icon: 'bi-sort-numeric-down',
     color: '#4B3F3F',
     route: '/patient/activities/event-sequence',
-    description: 'Arrange daily activities in right order.'
+    description: t('descDailyEventSequencing', 'Arrange daily activities in right order.')
   },
   {
     id: 8,
@@ -67,7 +67,7 @@ const getActivityConfig = (t) => [
     icon: 'bi-puzzle-fill',
     color: '#D4A5A5',
     route: '/patient/activities/puzzles',
-    description: 'Solve odd-one-out and pattern completion games.'
+    description: t('descSimplePuzzles', 'Solve odd-one-out and pattern completion games.')
   }
 ];
 
@@ -130,7 +130,7 @@ const ActivitySelection = () => {
                         recLevel === 'Hard' ? 'bg-danger' :
                         recLevel === 'Medium' ? 'bg-warning text-dark' : 'bg-success'
                       } fs-6 px-3 py-1 rounded-pill`}>
-                        Adaptive: {recLevel}
+                        {t('adaptive', 'Adaptive')}: {recLevel === 'Hard' ? t('hard', 'Hard') : recLevel === 'Medium' ? t('medium', 'Medium') : t('easy', 'Easy')}
                       </span>
                     </div>
                     <p className="text-muted fs-5 mb-4">{act.description}</p>
