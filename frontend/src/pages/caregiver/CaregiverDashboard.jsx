@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useCaregiverPatient } from '../../context/CaregiverPatientContext';
@@ -127,12 +127,33 @@ const CaregiverDashboard = () => {
   const latestRec = recommendations.length > 0 ? recommendations[0] : null;
   const pendingRequests = requests.filter(r => r.status === 'pending');
 
-  // Chart Data Preparation
+  // Chart Data Preparation & Horizontal Scroll Settings
   const recentSessions = [...sessions].reverse();
+  const numSessions = recentSessions.length;
   const chartLabels = recentSessions.map((s, idx) => `Session #${idx + 1}`);
 
-  const chartOptions = {
+  // When sessions increase, maintain a minimum width per session slot so bars/points never become small/cramped
+  const sessionSlotWidth = 55;
+  const dynamicChartWidth = numSessions > 7 ? `${numSessions * sessionSlotWidth}px` : '100%';
+
+  const accuracyScrollRef = useRef(null);
+  const mistakesScrollRef = useRef(null);
+
+  // Auto-scroll to latest session (far right) when sessions increase beyond standard container width
+  useEffect(() => {
+    if (numSessions > 7) {
+      if (accuracyScrollRef.current) {
+        accuracyScrollRef.current.scrollLeft = accuracyScrollRef.current.scrollWidth;
+      }
+      if (mistakesScrollRef.current) {
+        mistakesScrollRef.current.scrollLeft = mistakesScrollRef.current.scrollWidth;
+      }
+    }
+  }, [numSessions]);
+
+  const baseChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -155,6 +176,38 @@ const CaregiverDashboard = () => {
     }
   };
 
+  const accuracyChartOptions = {
+    ...baseChartOptions,
+    scales: {
+      ...baseChartOptions.scales,
+      y: {
+        ...baseChartOptions.scales.y,
+        min: 0,
+        max: 100,
+        ticks: {
+          ...baseChartOptions.scales.y.ticks,
+          callback: (value) => `${value}%`
+        }
+      }
+    }
+  };
+
+  const mistakesChartOptions = {
+    ...baseChartOptions,
+    scales: {
+      ...baseChartOptions.scales,
+      y: {
+        ...baseChartOptions.scales.y,
+        beginAtZero: true,
+        ticks: {
+          ...baseChartOptions.scales.y.ticks,
+          stepSize: 1,
+          precision: 0
+        }
+      }
+    }
+  };
+
   const accuracyChartData = {
     labels: chartLabels,
     datasets: [
@@ -164,7 +217,9 @@ const CaregiverDashboard = () => {
         borderColor: '#D4A5A5',
         backgroundColor: 'rgba(212, 165, 165, 0.25)',
         tension: 0.3,
-        fill: true
+        fill: true,
+        pointRadius: 4,
+        pointHoverRadius: 6
       }
     ]
   };
@@ -178,7 +233,9 @@ const CaregiverDashboard = () => {
         backgroundColor: '#C9B7A7',
         borderColor: '#4B3F3F',
         borderWidth: 1,
-        borderRadius: 6
+        borderRadius: 6,
+        maxBarThickness: 45,
+        barPercentage: 0.65
       }
     ]
   };
@@ -463,15 +520,49 @@ const CaregiverDashboard = () => {
       <div className="row g-4 mb-4">
         <div className="col-md-6">
           <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-            <h4 className="fw-bold mb-3 text-dark">Accuracy Trajectory Over Time</h4>
-            <Line data={accuracyChartData} options={chartOptions} />
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <h4 className="fw-bold mb-0 text-dark">Accuracy Trajectory Over Time</h4>
+              {numSessions > 7 && (
+                <span className="badge bg-rose-light text-rose border border-rose rounded-pill px-3 py-1 fs-6">
+                  <i className="bi bi-arrow-left-right me-1"></i> Scroll ({numSessions} sessions)
+                </span>
+              )}
+            </div>
+            <div 
+              ref={accuracyScrollRef}
+              className="chart-horizontal-scroll-wrapper"
+              tabIndex={0}
+              role="region"
+              aria-label="Accuracy Trajectory Chart Scroll Area"
+            >
+              <div style={{ width: dynamicChartWidth, minWidth: '100%', height: '320px', position: 'relative' }}>
+                <Line data={accuracyChartData} options={accuracyChartOptions} />
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="col-md-6">
           <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-            <h4 className="fw-bold mb-3 text-dark">Mistakes Count Per Session</h4>
-            <Bar data={mistakesChartData} options={chartOptions} />
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <h4 className="fw-bold mb-0 text-dark">Mistakes Count Per Session</h4>
+              {numSessions > 7 && (
+                <span className="badge bg-rose-light text-rose border border-rose rounded-pill px-3 py-1 fs-6">
+                  <i className="bi bi-arrow-left-right me-1"></i> Scroll ({numSessions} sessions)
+                </span>
+              )}
+            </div>
+            <div 
+              ref={mistakesScrollRef}
+              className="chart-horizontal-scroll-wrapper"
+              tabIndex={0}
+              role="region"
+              aria-label="Mistakes Count Chart Scroll Area"
+            >
+              <div style={{ width: dynamicChartWidth, minWidth: '100%', height: '320px', position: 'relative' }}>
+                <Bar data={mistakesChartData} options={mistakesChartOptions} />
+              </div>
+            </div>
           </div>
         </div>
       </div>

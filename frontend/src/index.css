@@ -244,6 +244,46 @@ h1, h2, h3, h4, h5, h6 {
   scrollbar-width: none !important;
 }
 
+/* Horizontal Scrollbar for Analytics Charts */
+.chart-horizontal-scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #D4A5A5 #f6ede8;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chart-horizontal-scroll-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.chart-horizontal-scroll-wrapper::-webkit-scrollbar-track {
+  background: #f6ede8;
+  border-radius: 6px;
+}
+
+.chart-horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: #D4A5A5;
+  border-radius: 6px;
+}
+
+.chart-horizontal-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background-color: #ba8c8c;
+}
+
+[data-theme="dark"] .chart-horizontal-scroll-wrapper {
+  scrollbar-color: #5c4e4e #2a2222;
+}
+
+[data-theme="dark"] .chart-horizontal-scroll-wrapper::-webkit-scrollbar-track {
+  background: #2a2222;
+}
+
+[data-theme="dark"] .chart-horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: #5c4e4e;
+}
+
 [data-theme="dark"] .nav-option, [data-theme="dark"] .bubble-nav-link {
   color: var(--text-primary) !important;
 }
