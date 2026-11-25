@@ -70,9 +70,9 @@ const FamiliarFaces = () => {
                 />
                 <h2 className="fw-bold text-dark mb-1 fs-3">{person.name}</h2>
                 <span className="badge bg-rose-light text-rose border border-rose fs-5 px-3 py-1 rounded-pill mb-3">
-                  {person.relationship}
+                  {person.relationship ? t(person.relationship, person.relationship) : ''}
                 </span>
-                <p className="text-secondary fs-5 mb-0">{person.description || 'Family member'}</p>
+                <p className="text-secondary fs-5 mb-0">{person.description ? t(person.description, person.description) : t('familyMember', 'Family member')}</p>
               </div>
             </div>
           ))}

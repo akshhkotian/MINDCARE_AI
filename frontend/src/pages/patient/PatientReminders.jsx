@@ -180,7 +180,7 @@ const PatientReminders = () => {
                       ⏰ {rem.reminder_time}
                     </span>
                     <span className="badge bg-secondary fs-6 rounded-pill px-3 py-1">
-                      {rem.repeat_option || 'Daily'}
+                      {rem.repeat_option ? t(rem.repeat_option, rem.repeat_option) : t('daily', 'Daily')}
                     </span>
                   </div>
 
@@ -188,11 +188,11 @@ const PatientReminders = () => {
                     {isHydration && <i className="bi bi-droplet-fill text-info me-2"></i>}
                     {isCognitive && <i className="bi bi-controller text-rose me-2"></i>}
                     {!isHydration && !isCognitive && <i className="bi bi-alarm text-warning me-2"></i>}
-                    {rem.title}
+                    {t(rem.title, rem.title)}
                   </h3>
 
                   <p className="fs-5 text-secondary mb-4 flex-grow-1 leading-relaxed">
-                    {rem.description || 'No special instructions.'}
+                    {rem.description ? t(rem.description, rem.description) : t('noSpecialInstructions', 'No special instructions.')}
                   </p>
 
                   <div>
@@ -203,7 +203,7 @@ const PatientReminders = () => {
                       }`}
                     >
                       <i className={`bi ${isCompleted ? 'bi-check-all' : 'bi-circle'} me-2`}></i>
-                      {isCompleted ? 'Completed (Click to Undo)' : 'Mark Done'}
+                      {isCompleted ? t('completedUndo', 'Completed (Click to Undo)') : t('markDone', 'Mark Done')}
                     </button>
                   </div>
                 </div>

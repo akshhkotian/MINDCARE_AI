@@ -160,7 +160,7 @@ const Navbar = () => {
                 <Link 
                   to={isPatient ? "/patient/account" : "/caregiver/account"} 
                   className="badge badge-bubble-rose px-3 py-2 fs-6 text-decoration-none cursor-pointer d-flex align-items-center justify-content-center gap-2" 
-                  title="Manage Account"
+                  title={t('manageAccount', 'Manage Account')}
                   onClick={closeNav}
                 >
                   <i className="bi bi-person-circle fs-5"></i> 
